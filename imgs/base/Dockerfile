@@ -23,8 +23,8 @@ RUN apk update && apk upgrade && \
     ripgrep
 
 # Configure git
-RUN git config --global user.email "overdrive@txnal.com" && \
-    git config --global user.name "overdrive by transactional"
+RUN git config --global user.email "overdrive@jefflunt.com" && \
+    git config --global user.name "overdrive"
 
 # Install opencode
 RUN curl -fsSL https://opencode.ai/install | bash
