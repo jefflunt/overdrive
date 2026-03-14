@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en" class="dark" data-theme="dark">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+    <title>overdrive - Ship Faster with Automated Docs & Code</title>
+    <script>
+        // Initialize theme based on system preference or saved value
+        const savedThemeId = localStorage.getItem('theme-id') || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-theme', savedThemeId);
+        const darkThemes = ['dark', 'dracula', 'monokai', 'nord', 'solarized-dark', 'gruvbox-dark', 'one-dark', 'synthwave', 'cyberpunk', 'tokyo-night'];
+        let isDark = darkThemes.includes(savedThemeId);
+        
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" href="./icons/icon-192.png">
+    <meta name="theme-color" content="#00A36C">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: "var(--primary-color)",
+                            dark: "var(--primary-color)",
+                        },
+                        "background-light": "var(--bg-color)",
+                        "background-dark": "var(--bg-color)",
+                        "panel-light": "var(--panel-color)",
+                        "panel-dark": "var(--panel-color)",
+                        "border-light": "var(--border-color)",
+                        "border-dark": "var(--border-color)",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "4px",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        :root {
+            --bg-color: #F8FAFC;
+            --panel-color: #FFFFFF;
+            --border-color: #E2E8F0;
+            --text-color: #0F172A;
+            --text-secondary: #64748B;
+            --primary-color: #00A36C;
+            --primary-rgb: 0, 163, 108;
+        }
+        [data-theme='dark'] {
+            --bg-color: #0A0A0B;
+            --panel-color: #020203;
+            --border-color: #1A1A1A;
+            --text-color: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --primary-color: #00FF9D;
+            --primary-rgb: 0, 255, 157;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+        .text-slate-900, .dark .text-slate-200, .dark .text-slate-100 { color: var(--text-color) !important; }
+        .text-slate-500, .dark .text-slate-400 { color: var(--text-secondary) !important; }
+        .border-slate-200, .dark .border-border-dark { border-color: var(--border-color) !important; }
+        .bg-white, .dark .bg-panel-dark { background-color: var(--panel-color) !important; }
+        .bg-background-light, .dark .bg-background-dark { background-color: var(--bg-color) !important; }
+
+        .glass-panel {
+            background: var(--panel-color);
+            opacity: 0.95;
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            transition: background 0.5s ease, border-color 0.5s ease;
+        }
+        div, button, a, span {
+            transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #27272A; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen relative flex flex-col overflow-x-hidden">
+    
+    <nav class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-xl border-b border-slate-200 dark:border-border-dark">
+        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="./icons/icon-192.png" alt="Logo" class="w-8 h-8">
+                <span class="font-mono font-bold tracking-tighter">OVERDRIVE</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="https://github.com/jefflunt/overdrive" class="text-slate-500 hover:text-primary dark:hover:text-primary-dark transition-colors flex items-center gap-2">
+                    <span class="font-bold text-sm">GITHUB</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 relative">
+        <canvas id="hero-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+        <div class="max-w-5xl mx-auto space-y-24 py-12 px-4 relative z-10">
+            <!-- Hero Section -->
+            <section id="hero-section" class="text-center space-y-8 relative overflow-hidden py-12">
+                <div class="relative z-10 pointer-events-none">
+                    <div class="font-mono text-5xl md:text-8xl font-black tracking-tighter text-primary dark:text-primary-dark mb-12">
+                        OVERDRIVE
+                    </div>
+                    <h1 class="text-5xl md:text-7xl font-display font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+                        The app for <span class="text-primary dark:text-primary-dark">indie builders</span> who want to ship <span class="text-primary dark:text-primary-dark">incredibly fast</span>.
+                    </h1>
+                    <p class="text-xl md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed">
+                        The personal agentic development platform designed for indie builders to move at light speed—from your desktop, phone, or tablet.
+                    </p>
+                </div>
+                <div class="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                    <a href="https://github.com/jefflunt/overdrive" class="w-full sm:w-auto bg-primary dark:bg-primary-dark hover:bg-primary/90 dark:hover:bg-primary-dark/90 text-black px-10 py-4 rounded font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-primary/20">
+                        Start Building Now
+                    </a>
+                </div>
+
+                <div class="mt-16 relative max-w-5xl mx-auto">
+                    <!-- Desktop Frame -->
+                    <div class="relative rounded-xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 z-10">
+                        <img src="./img/app-desktop.png" alt="Desktop Interface" class="w-full h-auto bg-slate-100 dark:bg-slate-900">
+                    </div>
+                    <!-- Mobile Frame -->
+                    <div class="absolute -right-4 -bottom-8 w-[25%] max-w-[240px] rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-900 z-20">
+                        <img src="./img/app-mobile.png" alt="Mobile Interface" class="w-full h-auto bg-slate-100 dark:bg-slate-900">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section id="features" class="grid md:grid-cols-2 gap-8">
+                <div class="glass-panel p-8 rounded-2xl border border-slate-200 dark:border-border-dark hover:border-primary/50 transition-colors group">
+                    <div class="w-12 h-12 bg-primary dark:bg-primary-dark rounded-lg flex items-center justify-center mb-6 group-hover:bg-primary/90 dark:group-hover:bg-primary-dark/90 transition-colors">
+                        <span class="material-symbols-outlined text-white dark:text-black">auto_awesome</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 dark:text-white">Automated Builds</h3>
+                    <p class="text-slate-500 dark:text-slate-400">Trigger builds automatically on every commit.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl border border-slate-200 dark:border-border-dark hover:border-primary/50 transition-colors group">
+                    <div class="w-12 h-12 bg-primary dark:bg-primary-dark rounded-lg flex items-center justify-center mb-6 group-hover:bg-primary/90 dark:group-hover:bg-primary-dark/90 transition-colors">
+                        <span class="material-symbols-outlined text-white dark:text-black">account_tree</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 dark:text-white">Git Integration</h3>
+                    <p class="text-slate-500 dark:text-slate-400">Seamlessly connects via Git+SSH to wherever you host your code repo, such as GitHub, GitLab, and Bitbucket.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl border border-slate-200 dark:border-border-dark hover:border-primary/50 transition-colors group">
+                    <div class="w-12 h-12 bg-primary dark:bg-primary-dark rounded-lg flex items-center justify-center mb-6 group-hover:bg-primary/90 dark:group-hover:bg-primary-dark/90 transition-colors">
+                        <span class="material-symbols-outlined text-white dark:text-black">dashboard_customize</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 dark:text-white">Mobile Responsive UI</h3>
+                    <p class="text-slate-500 dark:text-slate-400">Build on the go! Our mobile-responsive interface allows indie builders to manage projects and monitor builds directly from their phones.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl border border-slate-200 dark:border-border-dark hover:border-primary/50 transition-colors group">
+                    <div class="w-12 h-12 bg-primary dark:bg-primary-dark rounded-lg flex items-center justify-center mb-6 group-hover:bg-primary/90 dark:group-hover:bg-primary-dark/90 transition-colors">
+                        <span class="material-symbols-outlined text-white dark:text-black">bolt</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 dark:text-white">Fast & Reliable</h3>
+                    <p class="text-slate-500 dark:text-slate-400">Built for speed. The build system ensures your projects are processed quickly and reliably every time.</p>
+                </div>
+            </section>
+
+            <!-- How it Works Section -->
+            <section class="space-y-12">
+                <div class="text-center space-y-4">
+                    <h2 class="text-3xl font-bold dark:text-white">How it Works</h2>
+                    <p class="text-slate-500 dark:text-slate-400">Get up and running in minutes.</p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
+                    <div class="text-center space-y-4">
+                        <div class="text-4xl font-mono font-bold text-primary dark:text-primary-dark opacity-30">01</div>
+                        <h4 class="text-lg font-bold dark:text-white">Connect Repo</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Provide your Git SSH URL and credentials to link your project.</p>
+                    </div>
+                    <div class="text-center space-y-4">
+                        <div class="text-4xl font-mono font-bold text-primary dark:text-primary-dark opacity-30">02</div>
+                        <h4 class="text-lg font-bold dark:text-white">Configure Build</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Set your primary branch and build triggers in the intuitive settings panel.</p>
+                    </div>
+                    <div class="text-center space-y-4">
+                        <div class="text-4xl font-mono font-bold text-primary dark:text-primary-dark opacity-30">03</div>
+                        <h4 class="text-lg font-bold dark:text-white">Full Visibility</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Every agentic change is logged in detail. Monitor build logs in real-time to see exactly how your code is being updated.</p>
+                    </div>
+                    <div class="text-center space-y-4">
+                        <div class="text-4xl font-mono font-bold text-primary dark:text-primary-dark opacity-30">04</div>
+                        <h4 class="text-lg font-bold dark:text-white">Ship Fast</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Watch your jobs run and enjoy automatically updated code without manual intervention.</p>
+                    </div>
+                    <div class="text-center space-y-4">
+                        <div class="text-4xl font-mono font-bold text-primary dark:text-primary-dark opacity-30">05</div>
+                        <h4 class="text-lg font-bold dark:text-white">Build Anywhere</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Launch and monitor builds directly from your mobile or desktop browser, giving you total freedom.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA Section -->
+            <section class="bg-slate-900 dark:bg-panel-dark rounded-3xl p-12 text-center space-y-8 border border-slate-800 shadow-2xl relative overflow-hidden">
+                <div class="absolute inset-0 bg-primary/5 dark:bg-primary-dark/5 opacity-20"></div>
+                <div class="relative z-10 space-y-6">
+                    <h2 class="text-3xl md:text-5xl font-bold text-white leading-tight">Ready to automate your workflow?</h2>
+                    <a href="https://github.com/jefflunt/overdrive" class="inline-block bg-primary dark:bg-primary-dark hover:bg-primary/90 dark:hover:bg-primary-dark/90 text-black px-12 py-4 rounded font-bold text-lg transition-all shadow-lg shadow-primary/10">
+                        Start Building Now
+                    </a>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="text-center py-8 border-t border-slate-200 dark:border-border-dark">
+                <p class="text-slate-500 dark:text-slate-400 text-sm">
+                    overdrive &copy; 2026 by jeff lunt
+                </p>
+            </footer>
+        </div>
+    </main>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById('hero-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            // Configuration
+            const fragmentCount = 250;
+            const baseSpeed = 4;
+            const speedVariance = 3;
+            const angle = Math.atan2(60, 800);
+            const vxBase = Math.cos(angle);
+            const vyBase = Math.sin(angle);
+            
+            let width, height;
+            let particles = [];
+            let primaryColor, textColor;
+
+            function updateColors() {
+                const style = getComputedStyle(document.body);
+                let pColor = style.getPropertyValue('--primary-color').trim();
+                let tColor = style.getPropertyValue('--text-color').trim();
+                
+                if (!pColor) pColor = document.documentElement.classList.contains('dark') ? '#00FF9D' : '#00A36C';
+                if (!tColor) tColor = document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#0F172A';
+                
+                primaryColor = pColor;
+                textColor = tColor;
+            }
+
+            function resize() {
+                width = canvas.parentElement.offsetWidth;
+                height = canvas.parentElement.offsetHeight;
+                
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+                ctx.scale(dpr, dpr);
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                
+                updateColors();
+                initParticles();
+            }
+
+            class Particle {
+                constructor() {
+                    this.reset(true);
+                }
+
+                reset(randomizeX = false) {
+                    if (randomizeX) {
+                        this.x = (Math.random() * 0.9 - 0.1) * width;
+                    } else {
+                        this.x = (Math.random() * 0.1 - 0.2) * width;
+                    }
+                    this.y = (Math.random() * 1.1 - 0.1) * height;
+                    
+                    this.sizeW = Math.random() * 4 + 1;
+                    this.sizeH = this.sizeW * (Math.random() * 2);
+                    
+                    const speed = baseSpeed + Math.random() * speedVariance;
+                    this.vx = vxBase * speed;
+                    this.vy = vyBase * speed;
+                    
+                    this.life = 0;
+                    this.maxLife = width * 0.8 + Math.random() * (width * 0.2); 
+                }
+
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.life += Math.sqrt(this.vx*this.vx + this.vy*this.vy);
+
+                    if (this.x > width + 50 || this.y > height + 50 || this.life >= this.maxLife) {
+                        this.reset();
+                    }
+                }
+
+                draw() {
+                    let phase = this.life / this.maxLife;
+                    if (phase > 1) phase = 1;
+
+                    let scale = 1;
+                    if (phase < 0.1) {
+                        scale = phase / 0.1;
+                    } else if (phase > 0.8) {
+                        scale = 1 - ((phase - 0.8) / 0.2);
+                    }
+                    
+                    if (scale <= 0) return;
+
+                    let opacity = 0;
+                    if (phase <= 0.1) {
+                        opacity = phase / 0.1;
+                    } else if (phase <= 0.8) {
+                        opacity = 1;
+                    } else {
+                        opacity = 1 - ((phase - 0.8) / 0.2);
+                    }
+
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.scale(scale, scale);
+                    
+                    ctx.fillStyle = (phase < 0.5) ? primaryColor : textColor;
+                    ctx.globalAlpha = opacity;
+                    
+                    ctx.beginPath();
+                    ctx.rect(0, 0, this.sizeW, this.sizeH);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+
+            function initParticles() {
+                particles = [];
+                for (let i = 0; i < fragmentCount; i++) {
+                    particles.push(new Particle());
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                for (let i = 0; i < particles.length; i++) {
+                    particles[i].update();
+                    particles[i].draw();
+                }
+                requestAnimationFrame(animate);
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+            animate();
+        })();
+    </script>
+</body>
+</html>
