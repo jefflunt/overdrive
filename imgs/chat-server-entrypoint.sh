@@ -30,8 +30,8 @@ cd target
 # Ensure we are on the right branch
 if git ls-remote --exit-code --heads origin "$WORKER_BRANCH" >/dev/null; then
   echo "  Switching to existing branch $WORKER_BRANCH..."
-  git fetch origin "$WORKER_BRANCH" --depth 1
-  git checkout "$WORKER_BRANCH" || git checkout -b "$WORKER_BRANCH" "origin/$WORKER_BRANCH"
+  git fetch origin "$WORKER_BRANCH"
+  git switch "$WORKER_BRANCH" || git checkout -b "$WORKER_BRANCH" "origin/$WORKER_BRANCH"
 else
   echo "  Creating new branch $WORKER_BRANCH..."
   git checkout -b "$WORKER_BRANCH"

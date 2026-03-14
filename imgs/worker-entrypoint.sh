@@ -127,16 +127,9 @@ git clone --depth 1 "$REPO_URL" target
 cd target
 
 # Switch to or create the WORKER_BRANCH
-if git ls-remote --exit-code --heads origin "$WORKER_BRANCH" >/dev/null; then
-  echo "  Switching to existing branch $WORKER_BRANCH..."
-  git fetch origin "$WORKER_BRANCH" --depth 1
-  git checkout "$WORKER_BRANCH" || git checkout -b "$WORKER_BRANCH" "origin/$WORKER_BRANCH"
-  echo "  Pulling latest changes..."
-  git pull origin "$WORKER_BRANCH"
-else
-  echo "  Creating new branch $WORKER_BRANCH..."
-  git checkout -b "$WORKER_BRANCH"
-fi
+git checkout "$WORKER_BRANCH" || git checkout -b "$WORKER_BRANCH"
+git pull origin "$WORKER_BRANCH"
+
 INITIAL_SHA=$(git rev-parse HEAD)
 
 # Resolve Job ID to SHA for revert if necessary
