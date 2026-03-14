@@ -6,7 +6,7 @@ Project Chats provide a dedicated real-time space to brainstorm ideas, plan feat
 
 ## Real-Time Collaboration
 
-Each project has a dedicated chat interface that uses isolated containers for live, multi-turn interaction. This means the AI maintains context of your conversation, allowing for deep dives into complex problems.
+Each project has a dedicated chat interface that uses isolated, ephemeral containers for live, multi-turn interaction. This means the AI maintains context of your conversation, allowing for deep dives into complex problems. For technical details on the chat container architecture, see **[Worker Infrastructure](WORKER_INFRASTRUCTURE.md#chat-session-containers)**.
 
 ### Key Features
 

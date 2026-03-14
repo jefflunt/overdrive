@@ -199,10 +199,14 @@ Returns the Service Worker script for offline support and PWA functionality.
 
 ## Background Scheduler
 
-The server runs a background loop that:
-1.  **Polls**: Checks `projects/*/jobs/pending` for new work.
-2.  **Execution**: Executes `scripts/work` in goroutines.
-3.  **Completion**: Moves the job to its final state directory within the project based on its exit code.
+While the API server provides the interface for job submission and monitoring, the actual execution is managed by a separate **Scheduler process** (`bin/scheduler`).
+
+The scheduler runs a background loop that:
+1.  **Polls**: Checks `projects/*/jobs/pending` for new work across all projects.
+2.  **Concurrency Control**: Ensures that both global and per-project container limits are respected before starting a job.
+3.  **Execution**: Executes `scripts/work` in goroutines.
+4.  **Completion**: Moves the job to its final state directory within the project based on its exit code.
+5.  **Auto-Docs**: Enqueues a `/bdoc-update` job every 10 successful engineering jobs to keep documentation synchronized.
 
 ## Server Management
 

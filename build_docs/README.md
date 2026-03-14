@@ -36,10 +36,19 @@ The system provides an API to submit engineering tasks across multiple projects.
 
 *   **[Changelog](CHANGELOG.md)**: Project version history and recent changes.
 *   **[API Server](API_SERVER.md)**: Details on the Go service, endpoints, dashboard, and PWA features.
-*   **[Job System](JOB_SYSTEM.md)**: Technical details on the file-based queue and job lifecycle.
+*   **[Job System](JOB_SYSTEM.md)**: Technical details on the file-based queue, job lifecycle, and automatic documentation.
 *   **[Worker Infrastructure](WORKER_INFRASTRUCTURE.md)**: Technical details about the container environment and entrypoint.
 *   **[Remote Deployment](DEPLOYMENT.md)**: Architecture for offloading tasks to remote hosts manually.
+*   **[Jira Integration](JIRA_INTEGRATION.md)**: Technical details on task synchronization with Jira.
 *   **[Error Logs](errors/README.md)**: Standardized error reporting and tracking (all errors are tracked in `build_docs/errors/`).
+
+## User Guides
+
+*   **[Project Configuration](CONFIG.md)**: How to set up and manage projects, dependencies, and environment variables.
+*   **[Jobs Overview](JOBS.md)**: Understanding job statuses, logs, and how to monitor progress.
+*   **[Todos & Tasks](TODOS.md)**: Managing project tasks using native or Jira-integrated providers.
+*   **[Project Chat](CHATS.md)**: Collaborating with AI in real-time to plan and refine work.
+*   **[System Settings](SYSTEM.md)**: Monitoring system health and administrative actions.
 
 ## Quick Start
 

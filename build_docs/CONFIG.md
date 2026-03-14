@@ -27,7 +27,7 @@ When creating or editing a project, you can configure the following:
 
 ### Custom Commands (CMDS)
 
-*   **Custom Build Commands**: (Coming soon) A list of commands to run during the build process.
+*   **Custom Build Commands**: A list of commands to run during the build process. These commands execute within the project's isolated container environment, allowing you to run tests, linters, or deployment scripts directly from the dashboard. Output is streamed live to the UI.
 
 ### Environment Variables (ENV)
 
