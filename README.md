@@ -10,45 +10,32 @@
 - **[Podman](https://podman-desktop.io/)**: Required to execute AI worker tasks and chat sessions in isolated containers.
 - **`auth.json`**: An authentication file for the OpenCode service, located in the project root.
 
-### Building
+### Getting Started
 
-The project includes two primary components that need to be built:
+To build and start the full system, simply run:
 
-1. **API Server**: The web dashboard and core service.
-   ```bash
-   ./scripts/server-build
-   ```
-   This command compiles the server and outputs the binary to `bin/overdrive`.
+```bash
+./scripts/rebuild-and-restart
+```
 
-2. **Scheduler**: Manages background jobs and worker lifecycles.
-   ```bash
-   ./scripts/scheduler-build
-   ```
-   This command compiles the scheduler and outputs the binary to `bin/scheduler`.
-
-### Running
-
-To start the full system:
-1. Start the API server: `./bin/overdrive`
-2. Start the scheduler: `./bin/scheduler`
-
-For more detailed setup information, refer to [help_docs/DEPLOYMENT.md](help_docs/DEPLOYMENT.md).
+Then, open your browser to [http://localhost:3281](http://localhost:3281).
 
 ## 2. High-level Overview of Code Organization
 
-The codebase is organized as follows:
+Overdrive is built around the concept of **Projects** and **Jobs**. A project is a workspace that hosts AI agents, and a job is a specific task assigned to those agents. When a job is triggered, the **Scheduler** spins up an isolated **Worker** container using **Podman** to execute the task safely. The **API Server** provides the web interface and API for managing this entire lifecycle.
 
-- **`api/`**: Contains the core Go logic for the API server, including HTTP handlers (`handlers_*.go`), data models, and the `templates/` for the web interface.
-- **`cmd/`**: Entry points for the application's binaries.
-  - `api-server/`: Main function for the web server.
-  - `scheduler/`: Main function for the background job scheduler.
-- **`bin/`**: Destination for compiled project binaries.
-- **`projects/`**: Data directory for all projects. This includes project configurations (`project.yml`), job logs, and individual project data like `chats_data/`.
-- **`imgs/`**: Contains Dockerfiles and entrypoint scripts used by Podman to build worker and chat environments.
-- **`scripts/`**: A collection of utility scripts for building, deploying, and running common tasks (e.g., `server-build`, `scheduler-build`, `deploy`).
-- **`static/`**: Static assets for the web dashboard, such as CSS and JavaScript files.
-- **`build_docs/`**: Source directory for project documentation and development plans.
-- **`help_docs/`**: Final documentation files served by the application's help system.
+```text
+.
+├── api/             # Core Go logic, HTTP handlers, and web templates
+├── bin/             # Compiled project binaries (server and scheduler)
+├── build_docs/      # Source documentation and development plans
+├── cmd/             # Entry points for server and scheduler binaries
+├── help_docs/       # Final documentation served by the help system
+├── imgs/            # Dockerfiles and scripts for Podman containers
+├── projects/        # Persistent data: configs, job logs, and chat data
+├── scripts/         # Utility scripts for building and managing the app
+└── static/          # Web dashboard assets (CSS, JS)
+```
 
 ## 3. The Role of `build_docs/`
 
