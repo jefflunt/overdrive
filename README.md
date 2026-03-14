@@ -15,7 +15,7 @@
 To build and start the full system, simply run:
 
 ```bash
-./scripts/rebuild-and-restart
+./scripts/rebuild-restart-all
 ```
 
 Then, open your browser to [http://localhost:3281](http://localhost:3281).
