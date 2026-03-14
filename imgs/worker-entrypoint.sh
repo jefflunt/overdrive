@@ -27,7 +27,7 @@ function commit_and_push() {
         fi
         echo "  Committing and pushing changes for $phase..."
         git commit -m "$current_msg"
-        git push origin "$PRIMARY_BRANCH"
+        git push origin "$WORKER_BRANCH"
     else
         echo "  No changes detected in $phase phase."
     fi
@@ -97,7 +97,7 @@ fi
 
 # Ensure required environment variables are present
 if [ -z "$REPO_URL" ]; then echo "Error: REPO_URL is not set"; exit 1; fi
-if [ -z "$PRIMARY_BRANCH" ]; then echo "Error: PRIMARY_BRANCH is not set"; exit 1; fi
+if [ -z "$WORKER_BRANCH" ]; then echo "Error: WORKER_BRANCH is not set"; exit 1; fi
 if [ -z "$COMMIT_MSG" ]; then echo "Error: COMMIT_MSG is not set"; exit 1; fi
 if [ -z "$PROMPT" ]; then echo "Error: PROMPT is not set"; exit 1; fi
 
@@ -120,16 +120,16 @@ echo "Prepping $REPO_URL ..."
 echo "  Cloning $REPO_URL into target..."
 
 set_sub_status "getting latest code"
-git clone --depth 1 --branch "$PRIMARY_BRANCH" "$REPO_URL" target
+git clone -o StrictHostKeyChecking=no --depth 1 --branch "$WORKER_BRANCH" "$REPO_URL" target
 
-# Switch to the target folder and then switch to the git branch PRIMARY_BRANCH
+# Switch to the target folder and then switch to the git branch WORKER_BRANCH
 cd target
-echo "  Checking out $PRIMARY_BRANCH..."
-git checkout "$PRIMARY_BRANCH"
+echo "  Checking out $WORKER_BRANCH..."
+git checkout "$WORKER_BRANCH"
 
-# git pull on the PRIMARY_BRANCH
+# git pull on the WORKER_BRANCH
 echo "  Pulling latest changes..."
-git pull origin "$PRIMARY_BRANCH"
+git pull origin "$WORKER_BRANCH"
 INITIAL_SHA=$(git rev-parse HEAD)
 
 # Resolve Job ID to SHA for revert if necessary
@@ -146,8 +146,8 @@ if [[ "$PROMPT" == "/bdoc-revert "* ]]; then
     fi
 fi
 
-# Working directly on PRIMARY_BRANCH
-echo "  Working on branch $PRIMARY_BRANCH..."
+# Working directly on WORKER_BRANCH
+echo "  Working on branch $WORKER_BRANCH..."
 
 # Use the first 70 characters of the prompt as the commit message for /bdoc-engineer jobs
 if [[ "$PROMPT" == "/bdoc-engineer "* ]]; then
@@ -221,7 +221,7 @@ $TEST_OUTPUT"
     fi
 done
 
-echo "Finishing $REPO_URL/$PRIMARY_BRANCH ..."
+echo "Finishing $REPO_URL/$WORKER_BRANCH ..."
 
 set_sub_status "verifying"
 commit_and_push "final"
