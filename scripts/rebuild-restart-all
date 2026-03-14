@@ -1,0 +1,4 @@
+#!/bin/bash
+
+./scripts/rebuild-and-restart-scheduler
+./scripts/rebuild-and-restart
