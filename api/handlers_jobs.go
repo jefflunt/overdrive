@@ -179,11 +179,7 @@ func HandleTailLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Logs could be in worker.log or remote.log
 	logFile := filepath.Join(project.LogsPath(jobID), "worker.log")
-	if _, err := os.Stat(logFile); os.IsNotExist(err) {
-		logFile = filepath.Join(project.LogsPath(jobID), "remote.log")
-	}
 
 	data, err := os.ReadFile(logFile)
 	if err != nil {
@@ -298,11 +294,7 @@ func HandleViewLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Logs could be in worker.log or remote.log
 	logFile := filepath.Join(project.LogsPath(jobID), "worker.log")
-	if _, err := os.Stat(logFile); os.IsNotExist(err) {
-		logFile = filepath.Join(project.LogsPath(jobID), "remote.log")
-	}
 
 	data, err := os.ReadFile(logFile)
 	if err != nil {
@@ -366,11 +358,7 @@ func HandlePartialLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Logs could be in worker.log or remote.log
 	logFile := filepath.Join(project.LogsPath(jobID), "worker.log")
-	if _, err := os.Stat(logFile); os.IsNotExist(err) {
-		logFile = filepath.Join(project.LogsPath(jobID), "remote.log")
-	}
 
 	data, err := os.ReadFile(logFile)
 	if err != nil {

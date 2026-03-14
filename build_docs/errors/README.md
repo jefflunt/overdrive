@@ -11,8 +11,7 @@ projects/
 └── <project-name>/
     └── logs/
         └── <job-id>/
-            ├── worker.log  # Local worker stdout/stderr
-            └── remote.log  # Remote execution logs (if applicable)
+            └── worker.log  # Worker stdout/stderr
 ```
 
 ## Error Tracking

@@ -251,7 +251,6 @@ All notable changes to the overdrive project will be documented in this file.
 ## [0.3.0] - 2026-02-05
 
 ### Added
-- **Remote Execution**: Support for offloading worker tasks to remote hosts via `scripts/deploy` and SSH.
 - **Worker Infrastructure**: Standardized Alpine-based worker image with pre-installed engineering tools.
 - **Error Tracking**: Established standardized documentation for error reporting and debugging workflows.
 

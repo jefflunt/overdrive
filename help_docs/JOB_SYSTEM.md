@@ -7,7 +7,6 @@ The **Job System** manages the lifecycle of worker tasks using a filesystem-base
 Jobs and logs are stored within project-specific directories:
 `projects/<project-name>/jobs/<state>/<job-id>.yml`
 `projects/<project-name>/logs/<job-id>/worker.log`
-`projects/<project-name>/logs/<job-id>/remote.log`
 
 ## Job Lifecycle States
 
@@ -60,9 +59,9 @@ exit_code: 0
 2.  **Scheduling**: The scheduler picks up pending jobs from all projects and moves the file to `projects/<name>/jobs/working/`.
 3.  **Execution**: The server executes `scripts/work` in a goroutine.
 4.  **Logging**:
-    *   `worker.log`: Standard output/error from the local worker container.
-    *   `remote.log`: Captured output if the job is executed on a remote host (see `DEPLOYMENT.md`).
-5.  **Finalization**: The YAML file is moved to its final state directory based on the exit code of the work script.
+    *   `worker.log`: Standard output/error from the worker container.
+5.  **Finalization**:
+ The YAML file is moved to its final state directory based on the exit code of the work script.
 
 ## Special Prompt Prefixes
 

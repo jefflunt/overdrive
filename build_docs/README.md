@@ -38,7 +38,6 @@ The system provides an API to submit engineering tasks across multiple projects.
 *   **[API Server](API_SERVER.md)**: Details on the Go service, endpoints, dashboard, and PWA features.
 *   **[Job System](JOB_SYSTEM.md)**: Technical details on the file-based queue, job lifecycle, and automatic documentation.
 *   **[Worker Infrastructure](WORKER_INFRASTRUCTURE.md)**: Technical details about the container environment and entrypoint.
-*   **[Remote Deployment](DEPLOYMENT.md)**: Architecture for offloading tasks to remote hosts manually.
 *   **[Jira Integration](JIRA_INTEGRATION.md)**: Technical details on task synchronization with Jira.
 *   **[Error Logs](errors/README.md)**: Standardized error reporting and tracking (all errors are tracked in `build_docs/errors/`).
 
@@ -71,5 +70,3 @@ This will:
 2.  Run a container that clones the repo.
 3.  Execute a simple prompt ("hi, how are you?").
 4.  Logs will be saved to `projects/<project-name>/logs/<job-id>/`.
-
-For remote execution, refer to **[Remote Deployment](DEPLOYMENT.md)**.

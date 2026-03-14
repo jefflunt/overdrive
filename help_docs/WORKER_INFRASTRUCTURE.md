@@ -62,7 +62,6 @@ Note: Git user configuration and SSH key placement are handled during the image 
 ## Usage
 The worker is primarily invoked via the helper scripts in `scripts/`.
 - `scripts/work`: The main script used by the API server to build and run the worker.
-- `scripts/deploy`: Used for remote execution (see [Remote Deployment](DEPLOYMENT.md)).
 
 ## Chat Session Containers
 For real-time project chat, the system uses ephemeral "chat session" containers. These containers run `opencode serve` to provide an interactive API for the chat interface.
