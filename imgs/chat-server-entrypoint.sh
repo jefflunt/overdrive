@@ -22,14 +22,20 @@ fi
 # Switch to the target folder and then switch to the git branch WORKER_BRANCH
 export GIT_SSH_COMMAND="ssh -i /ssh.key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 if [ ! -d "target" ]; then
-    echo "  Cloning $REPO_URL (branch: $WORKER_BRANCH) into target..."
-    git clone --depth 1 --branch "$WORKER_BRANCH" "$REPO_URL" target
+    echo "  Cloning $REPO_URL into target..."
+    git clone --depth 1 "$REPO_URL" target
 fi
 cd target
 
-# Ensure we are on the right branch (should already be true from clone)
-echo "  Ensuring we are on $WORKER_BRANCH..."
-git checkout "$WORKER_BRANCH" || git checkout -b "$WORKER_BRANCH"
+# Ensure we are on the right branch
+if git ls-remote --exit-code --heads origin "$WORKER_BRANCH" >/dev/null; then
+  echo "  Switching to existing branch $WORKER_BRANCH..."
+  git fetch origin "$WORKER_BRANCH" --depth 1
+  git checkout "$WORKER_BRANCH" || git checkout -b "$WORKER_BRANCH" "origin/$WORKER_BRANCH"
+else
+  echo "  Creating new branch $WORKER_BRANCH..."
+  git checkout -b "$WORKER_BRANCH"
+fi
 
 echo "Running opencode serve for chat"
 echo "  MODEL  $MODEL"

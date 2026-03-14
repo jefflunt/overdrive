@@ -74,18 +74,15 @@ fi
 
 # Build Base Image
 echo "Ensuring overdrive-base image..."
-"$PODMAN" build -q -t overdrive-base imgs/base > /dev/null
+BASE_IMAGE="overdrive-base"
+"$PODMAN" build -q -t $BASE_IMAGE imgs/base > /dev/null
 
 # Determine Project Base Image
-BASE_IMAGE="overdrive-base"
-if [ "$HARNESS_PROVIDER" = "claude-code" ]; then
-    BASE_IMAGE="overdrive-base"
-fi
 
 PROJECT_DOCKERFILE="projects/$PROJECT_NAME/Dockerfile"
 
 if [ -f "$PROJECT_DOCKERFILE" ]; then
-    PROJECT_BASE_TAG="overdrive-base-$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]//g')"
+    PROJECT_BASE_TAG="$BASE_IMAGE-$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]//g')"
     echo "Building custom environment for $PROJECT_NAME ($PROJECT_BASE_TAG)..."
     "$PODMAN" build -q -t "$PROJECT_BASE_TAG" -f "$PROJECT_DOCKERFILE" "projects/$PROJECT_NAME" > /dev/null
     BASE_IMAGE="$PROJECT_BASE_TAG"
@@ -164,7 +161,7 @@ exec "$PODMAN" run --rm \
   $ENV_ARGS \
   -e AUTH_JSON="$AUTH_JSON_CONTENT" \
   -e REPO_URL="$REPO_URL" \
-  -e PRIMARY_BRANCH="${BRANCH_PARENT:-main}" \
+  -e WORKER_BRANCH="${WORKER_BRANCH:-main}" \
   -e COMMIT_MSG="${COMMIT_MSG:-Worker Job}" \
   -e PROMPT="$PROMPT" \
   -e MODEL="${MODEL:-google/gemini-3-flash-preview}" \

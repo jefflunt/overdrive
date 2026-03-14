@@ -27,7 +27,7 @@ function commit_and_push() {
         fi
         echo "  Committing and pushing changes for $phase..."
         git commit -m "$current_msg"
-        git push origin "$WORKER_BRANCH"
+        git push -u origin "$WORKER_BRANCH"
     else
         echo "  No changes detected in $phase phase."
     fi
@@ -115,27 +115,28 @@ git config --global user.name "overdrive by transactional"
 
 echo "Prepping $REPO_URL ..."
 
+# Setup SSH command for bypass host key verification
+export GIT_SSH_COMMAND="ssh -i /ssh.key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
 # Clone the repo mentioned in REPO_URL into the folder WORKDIR/target/
 # Current directory is WORKDIR (/overdrive)
 echo "  Cloning $REPO_URL into target..."
 
 set_sub_status "getting latest code"
-git clone -o StrictHostKeyChecking=no --depth 1 "$REPO_URL" target
+git clone --depth 1 "$REPO_URL" target
 cd target
-git fetch --all
 
 # Switch to or create the WORKER_BRANCH
-if git rev-parse --quiet --verify refs/heads/"$WORKER_BRANCH" >/dev/null; then
-  echo "  Switching to branch $WORKER_BRANCH..."
-  git switch $WORKER_BRANCH
+if git ls-remote --exit-code --heads origin "$WORKER_BRANCH" >/dev/null; then
+  echo "  Switching to existing branch $WORKER_BRANCH..."
+  git fetch origin "$WORKER_BRANCH" --depth 1
+  git checkout "$WORKER_BRANCH" || git checkout -b "$WORKER_BRANCH" "origin/$WORKER_BRANCH"
+  echo "  Pulling latest changes..."
+  git pull origin "$WORKER_BRANCH"
 else
-  echo "  Creating branch $WORKER_BRANCH..."
-  git checkout -b $WORKER_BRANCH
+  echo "  Creating new branch $WORKER_BRANCH..."
+  git checkout -b "$WORKER_BRANCH"
 fi
-
-# git pull on the WORKER_BRANCH
-echo "  Pulling latest changes..."
-git pull origin "$WORKER_BRANCH"
 INITIAL_SHA=$(git rev-parse HEAD)
 
 # Resolve Job ID to SHA for revert if necessary

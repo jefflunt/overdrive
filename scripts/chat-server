@@ -1,6 +1,6 @@
 #!/bin/bash
 # Chat server execution script used by the API server
-# Expects: REPO_URL, PRIMARY_BRANCH, MODEL, CHAT_ID, PROJECT_NAME, SSH_KEY, SSH_CONFIG
+# Expects: REPO_URL, WORKER_BRANCH, MODEL, CHAT_ID, PROJECT_NAME, SSH_KEY, SSH_CONFIG
 
 # NOTE: This script does NOT use the standard timestamped logging boilerplate
 # because it must output a raw PORT number on stdout for the API server to consume.
@@ -86,11 +86,6 @@ fi
 
 # Determine Project Base Image
 BASE_IMAGE="overdrive-base"
-if [ "$HARNESS_PROVIDER" = "claude-code" ]; then
-    # In a real implementation, we'd have a claude-base image
-    # For now, we'll just use overdrive-base and maybe it has claude installed
-    BASE_IMAGE="overdrive-base"
-fi
 
 PROJECT_DOCKERFILE="projects/$PROJECT_NAME/Dockerfile"
 
@@ -170,7 +165,7 @@ CID=$("$PODMAN" run -d --rm \
   -v "$DATA_DIR:/root/.local/share/opencode" \
   -e AUTH_JSON="$AUTH_JSON_CONTENT" \
   -e REPO_URL="$REPO_URL" \
-  -e PRIMARY_BRANCH="${PRIMARY_BRANCH:-main}" \
+  -e WORKER_BRANCH="${WORKER_BRANCH:-main}" \
   -e MODEL="${MODEL:-google/gemini-3-flash-preview}" \
   -e LLM_PROVIDER="$LLM_PROVIDER" \
   -e HARNESS_PROVIDER="$HARNESS_PROVIDER" \

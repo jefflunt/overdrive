@@ -53,7 +53,7 @@ set +e
 podman run --rm \
   -v "$LOG_DIR:/log" \
   -e REPO_URL="$REPO_URL" \
-  -e PRIMARY_BRANCH="$BRANCH_PARENT" \
+  -e WORKER_BRANCH="$BRANCH_PARENT" \
   -e COMMIT_MSG="$COMMIT_MSG" \
   -e PROMPT="$PROMPT" \
   -e MODEL="$MODEL" \
