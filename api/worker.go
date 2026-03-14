@@ -520,7 +520,7 @@ func processJob(ctx context.Context, filePath string, project Project) {
 		"REPO_URL":         job.Request.RepoURL,
 		"SSH_KEY":          project.SSHKey,
 		"SSH_CONFIG":       project.SSHConfig,
-		"PRIMARY_BRANCH":   project.PrimaryBranch,
+		"WORKER_BRANCH":    project.PrimaryBranch,
 		"BRANCH_PARENT":    job.Request.BranchParent,
 		"COMMIT_MSG":       job.Request.CommitMsg,
 		"PROMPT":           job.Request.Prompt,

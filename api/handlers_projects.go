@@ -203,7 +203,7 @@ func HandleRunProjectCmd(w http.ResponseWriter, r *http.Request) {
 		"REPO_URL":         project.RepoURL,
 		"SSH_KEY":          project.SSHKey,
 		"SSH_CONFIG":       project.SSHConfig,
-		"PRIMARY_BRANCH":   project.PrimaryBranch,
+		"WORKER_BRANCH":    project.PrimaryBranch,
 		"BRANCH_PARENT":    project.PrimaryBranch,
 		"COMMIT_MSG":       "Custom Command: " + cmd.Label,
 		"PROMPT":           "Custom Command: " + cmd.Label,

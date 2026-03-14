@@ -410,7 +410,7 @@ func startChatServer(project Project, chatID string, opencodeSessionID string) (
 	cmd.Env = append(cmd.Env, "PROJECT_NAME="+project.Name)
 
 	cmd.Env = append(cmd.Env, "REPO_URL="+project.RepoURL)
-	cmd.Env = append(cmd.Env, "PRIMARY_BRANCH="+project.PrimaryBranch)
+	cmd.Env = append(cmd.Env, "WORKER_BRANCH="+project.PrimaryBranch)
 
 	// Use new LLM config
 	cmd.Env = append(cmd.Env, "LLM_PROVIDER="+project.Chat.LLM.Provider)
