@@ -1,0 +1,68 @@
+{{define "title"}}Help & Documentation{{end}}
+
+{{define "content"}}
+<div class="h-full bg-background-light dark:bg-background-dark overflow-y-auto">
+    <!-- Main area -->
+    <main class="min-w-0">
+        <div class="p-4 lg:p-8 prose dark:prose-invert max-w-none">
+            {{if .Doc}}
+                <h1>{{.Doc.Title}}</h1>
+                {{.Doc.Content | markdown}}
+            {{else}}
+                <div class="flex flex-col items-center justify-center h-full max-w-4xl mx-auto w-full px-6">
+                    <div class="text-center mb-12">
+                        <h1 class="text-4xl font-bold text-slate-900 dark:text-white mb-4">Welcome to the Help Center</h1>
+                        <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">Find answers, documentation, and guides to help you build faster.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+                        <a href="/help?doc=JOBS.md" class="group bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all text-left">
+                            <div class="w-12 h-12 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <span class="material-symbols-outlined text-2xl">work</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors">Jobs</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Learn how to manage tasks, builds, and operations.</p>
+                        </a>
+                        
+                        <a href="/help?doc=CHATS.md" class="group bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/5 transition-all text-left">
+                            <div class="w-12 h-12 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <span class="material-symbols-outlined text-2xl">chat</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-purple-500 transition-colors">Chats</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Understand conversation and change management.</p>
+                        </a>
+                        
+                        <a href="/help?doc=TODOS.md" class="group bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-green-500/50 hover:shadow-lg hover:shadow-green-500/5 transition-all text-left">
+                            <div class="w-12 h-12 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <span class="material-symbols-outlined text-2xl">check_circle</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-green-500 transition-colors">Todos</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Track tasks and manage your workflow.</p>
+                        </a>
+                        
+                        <a href="/help?doc=CONFIG.md" class="group bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/50 transition-all text-left">
+                            <div class="w-12 h-12 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <span class="material-symbols-outlined text-2xl">settings</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-amber-500 transition-colors">Configuration</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Manage project settings, repository info, and integrations.</p>
+                        </a>
+
+                        <a href="/help?doc=SYSTEM.md" class="group bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/50 transition-all text-left">
+                            <div class="w-12 h-12 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <span class="material-symbols-outlined text-2xl">monitor_heart</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-red-500 transition-colors">System Settings</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Monitor system health and access administrative controls.</p>
+                        </a>
+                    </div>
+                </div>
+            {{end}}
+        </div>
+    </main>
+</div>
+
+<style>
+    .prose h1 { margin-top: 0; }
+</style>
+{{end}}

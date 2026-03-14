@@ -1,0 +1,22 @@
+{{define "title"}}{{.Project.Name}} Todos{{end}}
+
+{{define "head"}}
+<link rel="stylesheet" href="/static/todos.css">
+<script src="/static/todos.js"></script>
+{{end}}
+
+{{define "content"}}
+<div id="todo-tree-container" class="w-full max-w-none mx-auto py-2 md:py-8">
+    <!-- JS will render here -->
+    <div class="flex items-center justify-center h-64">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const projectId = "{{.Project.Name}}";
+        new TodoTree("todo-tree-container", projectId);
+    });
+</script>
+{{end}}

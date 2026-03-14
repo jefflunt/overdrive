@@ -1,0 +1,619 @@
+{{define "title"}}Settings{{end}}
+
+{{define "head"}}
+<style>
+</style>
+{{end}}
+
+{{define "content"}}
+<section class="max-w-6xl mx-auto w-full">
+    <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-display font-bold text-slate-900 dark:text-slate-200 flex items-center gap-3">
+            <span class="material-symbols-outlined text-primary">settings</span>
+            Settings
+        </h2>
+    </div>
+
+    <div class="space-y-12">
+        <div class="space-y-6">
+            {{if .Project.Name}}
+            <p class="text-slate-500 text-sm">Configuring project: <span class="font-mono font-bold text-primary">{{.Project.Name}}</span></p>
+            {{else}}
+            <p class="text-slate-500 text-sm">Global System Settings</p>
+            {{end}}
+            
+            <form id="project-settings-form" class="space-y-6">
+                <!-- Concurrency Tab -->
+                <div id="tab-content-concurrency" class="space-y-6">
+                    {{if not .Project.Name}}
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-200 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">dynamic_form</span>
+                            Concurrency
+                        </h3>
+                        <p class="text-sm text-slate-500">Control system-wide concurrency limits across all projects.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2 p-4 border border-primary/20 bg-primary/5 rounded-lg">
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Max Global Containers</label>
+                                <p class="text-xs text-slate-500 mb-2">Total number of concurrent containers allowed across the entire system.</p>
+                                <input type="number" name="max_global_containers" value="{{.MaxGlobalContainers}}" min="1" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                            </div>
+ 
+                            <div class="space-y-4">
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Max Worker Containers</label>
+                                    <input type="number" name="max_global_build_containers" value="{{.MaxGlobalBuildContainers}}" min="1" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Max Chat Containers</label>
+                                    <input type="number" name="max_global_chat_containers" value="{{.MaxGlobalChatContainers}}" min="1" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Max Cmd Containers</label>
+                                    <input type="number" name="max_global_cmd_containers" value="{{.MaxGlobalCmdContainers}}" min="1" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    {{else}}
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-200 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">dynamic_form</span>
+                            Concurrency
+                        </h3>
+                        <p class="text-sm text-slate-500">Control the number of concurrent containers running for this project.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2 p-4 border border-primary/20 bg-primary/5 rounded-lg">
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Global Max Containers</label>
+                                <p class="text-xs text-slate-500 mb-2">Maximum total containers across all types (Build, Chat, Cmd)</p>
+                                <input type="number" name="concurrency_global_max" value="{{.Project.Concurrency.GlobalMax}}" min="1" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="space-y-2 opacity-60">
+                                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Max Worker Containers</label>
+                                    <input type="number" value="1" disabled class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm cursor-not-allowed">
+                                    <p class="text-[10px] text-slate-500 italic">Fixed at 1 for all projects</p>
+                                    <input type="hidden" name="concurrency_build_max" value="1">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Max Chat Containers</label>
+                                    <input type="number" name="concurrency_chat_max" value="{{.Project.Concurrency.ChatMax}}" min="1" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Max Cmd Containers</label>
+                                    <input type="number" name="concurrency_cmd_max" value="{{.Project.Concurrency.CmdMax}}" min="1" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+
+                {{if .Project.Name}}
+                <!-- General Tab -->
+                <div id="tab-content-general" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Repo URL</label>
+                            <input type="text" name="repo_url" value="{{.Project.RepoURL}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Primary Branch</label>
+                            <input type="text" name="primary_branch" value="{{.Project.PrimaryBranch}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dependencies Tab -->
+                <div id="tab-content-deps" class="hidden space-y-6">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Alpine Linux Dependencies</label>
+                        <p class="text-xs text-slate-500 mb-2">One package per line (e.g., nodejs, python3, go)</p>
+                        <textarea name="dependencies" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm font-mono h-48">{{.Project.Dependencies}}</textarea>
+                    </div>
+                </div>
+
+                <!-- Commands Tab -->
+                <div id="tab-content-cmds" class="hidden space-y-6">
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-200 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">terminal</span>
+                            Custom Build Commands
+                        </h3>
+                        <div id="cmds-list" class="space-y-2">
+                            {{range .Project.Cmds}}
+                            <div class="flex gap-2 cmd-row-settings">
+                                <input type="text" name="cmd_label[]" value="{{.Label}}" placeholder="LABEL" oninput="triggerAutoSave()" class="w-1/3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm font-mono">
+                                <input type="text" name="cmd_value[]" value="{{.Cmd}}" placeholder="COMMAND" oninput="triggerAutoSave()" class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm font-mono">
+                                <button type="button" onclick="this.parentElement.remove(); triggerAutoSave()" class="text-red-500 p-2">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </div>
+                            {{end}}
+                        </div>
+                        <button type="button" onclick="addCmdRowSettings()" class="text-sm text-primary font-bold flex items-center gap-1">
+                            <span class="material-symbols-outlined">add_circle</span>
+                            Add Command
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Env Vars Tab -->
+                <div id="tab-content-env" class="hidden space-y-6">
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-200 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">variable</span>
+                            Environment Variables
+                        </h3>
+                        <div id="env-vars-list" class="space-y-2">
+                            {{range $k, $v := .Project.EnvVars}}
+                            <div class="flex gap-2 env-var-row-settings">
+                                <input type="text" name="env_name[]" value="{{$k}}" placeholder="NAME" oninput="triggerAutoSave()" class="w-1/3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm font-mono">
+                                <input type="text" name="env_value[]" value="{{$v}}" placeholder="VALUE" oninput="triggerAutoSave()" class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm font-mono">
+                                <button type="button" onclick="this.parentElement.remove(); triggerAutoSave()" class="text-red-500 p-2">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </div>
+                            {{end}}
+                        </div>
+                        <button type="button" onclick="addEnvRowSettings()" class="text-sm text-primary font-bold flex items-center gap-1">
+                            <span class="material-symbols-outlined">add_circle</span>
+                            Add Variable
+                        </button>
+                    </div>
+                </div>
+
+                <!-- AI Harness Tab -->
+                <div id="tab-content-harness" class="hidden space-y-8">
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-200">Build Harness</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Provider</label>
+                                <select name="build_harness_provider" onchange="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                                    <option value="claude-code" {{if eq .Project.Build.Harness.Provider "claude-code"}}selected{{end}}>Claude Code</option>
+                                    <option value="codex-cli" {{if eq .Project.Build.Harness.Provider "codex-cli"}}selected{{end}}>Codex CLI</option>
+                                    <option value="cursor-cli" {{if eq .Project.Build.Harness.Provider "cursor-cli"}}selected{{end}}>Cursor CLI</option>
+                                    <option value="gemini-cli" {{if eq .Project.Build.Harness.Provider "gemini-cli"}}selected{{end}}>Gemini CLI</option>
+                                    <option value="github-cli" {{if eq .Project.Build.Harness.Provider "github-cli"}}selected{{end}}>GitHub CLI</option>
+                                    <option value="opencode" {{if eq .Project.Build.Harness.Provider "opencode"}}selected{{end}}>OpenCode (default)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-500 uppercase">LLM Provider</label>
+                                <select name="build_llm_provider" onchange="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                                    <option value="anthropic" {{if eq .Project.Build.LLM.Provider "anthropic"}}selected{{end}}>Anthropic</option>
+                                    <option value="anysphere" {{if eq .Project.Build.LLM.Provider "anysphere"}}selected{{end}}>Anysphere</option>
+                                    <option value="google-gemini" {{if eq .Project.Build.LLM.Provider "google-gemini"}}selected{{end}}>Google Gemini</option>
+                                    <option value="openai" {{if eq .Project.Build.LLM.Provider "openai"}}selected{{end}}>OpenAI</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Model</label>
+                                <input type="text" name="build_llm_model" value="{{.Project.Build.LLM.Model}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm font-mono">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-500 uppercase">API Key (or $ENV_VAR)</label>
+                                <input type="password" name="build_llm_api_key" value="{{.Project.Build.LLM.APIKey}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm font-mono">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 pt-6 border-t border-slate-200 dark:border-border-dark">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-200">Chat Harness</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Provider</label>
+                                <select name="chat_harness_provider" onchange="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                                    <option value="claude-code" {{if eq .Project.Chat.Harness.Provider "claude-code"}}selected{{end}}>Claude Code</option>
+                                    <option value="codex-cli" {{if eq .Project.Chat.Harness.Provider "codex-cli"}}selected{{end}}>Codex CLI</option>
+                                    <option value="cursor-cli" {{if eq .Project.Chat.Harness.Provider "cursor-cli"}}selected{{end}}>Cursor CLI</option>
+                                    <option value="gemini-cli" {{if eq .Project.Chat.Harness.Provider "gemini-cli"}}selected{{end}}>Gemini CLI</option>
+                                    <option value="github-cli" {{if eq .Project.Chat.Harness.Provider "github-cli"}}selected{{end}}>GitHub CLI</option>
+                                    <option value="opencode" {{if eq .Project.Chat.Harness.Provider "opencode"}}selected{{end}}>OpenCode (default)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-500 uppercase">LLM Provider</label>
+                                <select name="chat_llm_provider" onchange="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                                    <option value="anthropic" {{if eq .Project.Chat.LLM.Provider "anthropic"}}selected{{end}}>Anthropic</option>
+                                    <option value="anysphere" {{if eq .Project.Chat.LLM.Provider "anysphere"}}selected{{end}}>Anysphere</option>
+                                    <option value="google-gemini" {{if eq .Project.Chat.LLM.Provider "google-gemini"}}selected{{end}}>Google Gemini</option>
+                                    <option value="openai" {{if eq .Project.Chat.LLM.Provider "openai"}}selected{{end}}>OpenAI</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Model</label>
+                                <input type="text" name="chat_llm_model" value="{{.Project.Chat.LLM.Model}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm font-mono">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-500 uppercase">API Key (or $ENV_VAR)</label>
+                                <input type="password" name="chat_llm_api_key" value="{{.Project.Chat.LLM.APIKey}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm font-mono">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Tab -->
+                <div id="tab-content-feat" class="hidden space-y-6">
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-200 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">checklist</span>
+                            Todo Experience
+                        </h3>
+                        <p class="text-sm text-slate-500">Configure how tasks and todos are managed for this project.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="relative flex items-center p-4 border rounded-lg cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 {{if eq .Project.TodoProvider "native"}}border-primary bg-primary/5{{else}}border-slate-200 dark:border-slate-700{{end}}" id="provider-label-native">
+                                <input type="radio" name="todo_provider" value="native" {{if eq .Project.TodoProvider "native"}}checked{{end}} class="sr-only" onchange="updateProviderStyles(); triggerAutoSave()">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-primary">checklist</span>
+                                    <div>
+                                        <div class="font-bold text-slate-900 dark:text-slate-200">Native Todos</div>
+                                        <div class="text-xs text-slate-500">Simple, built-in task management</div>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="relative flex items-center p-4 border rounded-lg cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 {{if eq .Project.TodoProvider "jira"}}border-primary bg-primary/5{{else}}border-slate-200 dark:border-slate-700{{end}}" id="provider-label-jira">
+                                <input type="radio" name="todo_provider" value="jira" {{if eq .Project.TodoProvider "jira"}}checked{{end}} class="sr-only" onchange="updateProviderStyles(); triggerAutoSave()">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-blue-500">jira</span>
+                                    <div>
+                                        <div class="font-bold text-slate-900 dark:text-slate-200">Jira Integration</div>
+                                        <div class="text-xs text-slate-500">Sync with your Jira project issues</div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="jira-settings-container" class="{{if ne .Project.TodoProvider "jira"}}hidden{{end}} pt-6 border-t border-slate-200 dark:border-border-dark space-y-4">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-200 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-blue-500">settings</span>
+                            Jira Configuration
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Jira Instance URL</label>
+                                <input type="text" name="jira_instance" value="{{.Project.Jira.Instance}}" placeholder="https://yourcompany.atlassian.net" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Project Key</label>
+                                <input type="text" name="jira_project_key" value="{{.Project.Jira.ProjectKey}}" placeholder="PROJ" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Account Email</label>
+                                <input type="email" name="jira_email" value="{{.Project.Jira.Email}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">API Token (or $ENV_VAR)</label>
+                                <input type="password" name="jira_api_token" value="{{.Project.Jira.APIToken}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Status: Pick up</label>
+                                <input type="text" name="jira_status_pickup" value="{{if .Project.Jira.StatusPickup}}{{.Project.Jira.StatusPickup}}{{else}}In Progress{{end}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Status: Done</label>
+                                <input type="text" name="jira_status_done" value="{{if .Project.Jira.StatusDone}}{{.Project.Jira.StatusDone}}{{else}}Done{{end}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                </div>
+                {{end}}
+
+                <div class="pt-6 border-t border-slate-200 dark:border-border-dark">
+                    <button type="submit" id="settingsSubmitBtn" class="bg-primary hover:bg-primary/90 text-black px-6 py-2 rounded font-bold shadow-lg transition-all flex items-center gap-2 min-w-[180px] justify-center">
+                        <span id="settingsSubmitBtnIcon" class="hidden material-symbols-outlined animate-spin">sync</span>
+                        <span id="settingsSubmitBtnText">{{if .Project.Name}}PROJECT{{else}}GLOBAL{{end}} SETTINGS</span>
+                    </button>
+                </div>
+            </form>
+
+            <script>
+                let autoSaveTimeout;
+                function triggerAutoSave() {
+                    const form = document.getElementById('project-settings-form');
+                    if (!form) return;
+                    
+                    if (!form.checkValidity()) return;
+
+                    clearTimeout(autoSaveTimeout);
+                    autoSaveTimeout = setTimeout(() => {
+                        form.requestSubmit();
+                    }, 1000);
+                }
+
+                function updateSubmitButtonStatus(state) {
+                    const btn = document.getElementById('settingsSubmitBtn');
+                    const icon = document.getElementById('settingsSubmitBtnIcon');
+                    const text = document.getElementById('settingsSubmitBtnText');
+                    const mode = '{{if .Project.Name}}PROJECT{{else}}GLOBAL{{end}} SETTINGS';
+
+                    if (state === 'saving') {
+                        icon.classList.remove('hidden');
+                        text.innerText = 'SAVING...';
+                        btn.classList.add('opacity-75', 'cursor-not-allowed');
+                    } else if (state === 'saved') {
+                        icon.classList.add('hidden');
+                        text.innerText = 'SAVED';
+                        btn.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-primary');
+                        btn.classList.add('bg-green-500', 'text-white');
+                        setTimeout(() => {
+                            btn.classList.remove('bg-green-500', 'text-white');
+                            btn.classList.add('bg-primary');
+                            if (text.innerText === 'SAVED') text.innerText = mode;
+                        }, 2000);
+                    } else if (state === 'error') {
+                        icon.classList.add('hidden');
+                        text.innerText = 'ERROR';
+                        btn.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-primary');
+                        btn.classList.add('bg-red-500', 'text-white');
+                        setTimeout(() => {
+                            btn.classList.remove('bg-red-500', 'text-white');
+                            btn.classList.add('bg-primary');
+                            if (text.innerText === 'ERROR') text.innerText = mode;
+                        }, 2000);
+                    } else {
+                        icon.classList.add('hidden');
+                        text.innerText = mode;
+                        btn.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-green-500', 'bg-red-500', 'text-white');
+                        btn.classList.add('bg-primary');
+                    }
+                }
+
+                function switchTab(tab) {
+                    // Contents
+                    if (document.getElementById('tab-content-concurrency')) document.getElementById('tab-content-concurrency').classList.toggle('hidden', tab !== 'concurrency');
+                    if (document.getElementById('tab-content-general')) document.getElementById('tab-content-general').classList.toggle('hidden', tab !== 'general');
+                    if (document.getElementById('tab-content-deps')) document.getElementById('tab-content-deps').classList.toggle('hidden', tab !== 'deps');
+                    if (document.getElementById('tab-content-cmds')) document.getElementById('tab-content-cmds').classList.toggle('hidden', tab !== 'cmds');
+                    if (document.getElementById('tab-content-env')) document.getElementById('tab-content-env').classList.toggle('hidden', tab !== 'env');
+                    if (document.getElementById('tab-content-harness')) document.getElementById('tab-content-harness').classList.toggle('hidden', tab !== 'harness');
+                    if (document.getElementById('tab-content-feat')) document.getElementById('tab-content-feat').classList.toggle('hidden', tab !== 'feat');
+                    
+                    // Buttons
+                    const tabs = ['concurrency', 'general', 'deps', 'cmds', 'env', 'harness', 'feat'];
+                    tabs.forEach(t => {
+                        const btn = document.getElementById('tab-btn-' + t);
+                        if (btn) {
+                            if (t === tab) {
+                                btn.classList.add('border-primary', 'text-primary');
+                                btn.classList.remove('border-transparent', 'text-slate-500');
+                                btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                            } else {
+                                btn.classList.remove('border-primary', 'text-primary');
+                                btn.classList.add('border-transparent', 'text-slate-500');
+                            }
+                        }
+                    });
+                }
+
+                function addEnvRowSettings(name = '', value = '') {
+                    const container = document.getElementById('env-vars-list');
+                    if (!container) return;
+                    const div = document.createElement('div');
+                    div.className = 'flex gap-2 env-var-row-settings';
+                    div.innerHTML = `
+                        <input type="text" name="env_name[]" value="${name}" placeholder="NAME" oninput="triggerAutoSave()" class="w-1/3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm font-mono">
+                        <input type="text" name="env_value[]" value="${value}" placeholder="VALUE" oninput="triggerAutoSave()" class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm font-mono">
+                        <button type="button" onclick="this.parentElement.remove(); triggerAutoSave()" class="text-red-500 p-2">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    `;
+                    container.appendChild(div);
+                }
+
+                function addCmdRowSettings(label = '', cmd = '') {
+                    const container = document.getElementById('cmds-list');
+                    if (!container) return;
+                    const div = document.createElement('div');
+                    div.className = 'flex gap-2 cmd-row-settings';
+                    div.innerHTML = `
+                        <input type="text" name="cmd_label[]" value="${label}" placeholder="LABEL" oninput="triggerAutoSave()" class="w-1/3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm font-mono">
+                        <input type="text" name="cmd_value[]" value="${cmd}" placeholder="COMMAND" oninput="triggerAutoSave()" class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm font-mono">
+                        <button type="button" onclick="this.parentElement.remove(); triggerAutoSave()" class="text-red-500 p-2">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    `;
+                    container.appendChild(div);
+                }
+
+                function updateProviderStyles() {
+                    const providers = ['native', 'jira'];
+                    const radio = document.querySelector('input[name="todo_provider"]:checked');
+                    if (!radio) return;
+                    const selected = radio.value;
+                    
+                    providers.forEach(p => {
+                        const label = document.getElementById(`provider-label-${p}`);
+                        if (label) {
+                            if (p === selected) {
+                                label.classList.add('border-primary', 'bg-primary/5');
+                                label.classList.remove('border-slate-200', 'dark:border-slate-700');
+                            } else {
+                                label.classList.remove('border-primary', 'bg-primary/5');
+                                label.classList.add('border-slate-200', 'dark:border-slate-700');
+                            }
+                        }
+                    });
+
+                    const jiraContainer = document.getElementById('jira-settings-container');
+                    if (jiraContainer) jiraContainer.classList.toggle('hidden', selected !== 'jira');
+                }
+
+                const settingsForm = document.getElementById('project-settings-form');
+                if (settingsForm) {
+                    settingsForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.target);
+                        updateSubmitButtonStatus('saving');
+                        
+                        {{if .Project.Name}}
+                        const selectedProvider = formData.get('todo_provider');
+                        
+                        const envVars = {};
+                        const names = formData.getAll('env_name[]');
+                        const values = formData.getAll('env_value[]');
+                        for (let i = 0; i < names.length; i++) {
+                            if (names[i].trim()) {
+                                envVars[names[i].trim()] = values[i].trim();
+                            }
+                        }
+
+                        const cmds = [];
+                        const cmdLabels = formData.getAll('cmd_label[]');
+                        const cmdValues = formData.getAll('cmd_value[]');
+                        for (let i = 0; i < cmdLabels.length; i++) {
+                            if (cmdLabels[i].trim() || cmdValues[i].trim()) {
+                                cmds.push({
+                                    label: cmdLabels[i].trim(),
+                                    cmd: cmdValues[i].trim()
+                                });
+                            }
+                        }
+
+                        const data = {
+                            name: "{{.Project.Name}}",
+                            repo_url: formData.get('repo_url'),
+                            primary_branch: formData.get('primary_branch'),
+                            ssh_key: "{{.Project.SSHKey}}", // Keep existing
+                            ssh_config: "{{.Project.SSHConfig}}", // Keep existing
+                            build: {
+                                harness: { provider: formData.get('build_harness_provider') },
+                                llm: { 
+                                    provider: formData.get('build_llm_provider'),
+                                    model: formData.get('build_llm_model'),
+                                    api_key: formData.get('build_llm_api_key')
+                                }
+                            },
+                            chat: {
+                                harness: { provider: formData.get('chat_harness_provider') },
+                                llm: { 
+                                    provider: formData.get('chat_llm_provider'),
+                                    model: formData.get('chat_llm_model'),
+                                    api_key: formData.get('chat_llm_api_key')
+                                }
+                            },
+                            dependencies: formData.get('dependencies'),
+                            cmds: cmds,
+                            env_vars: envVars,
+                            todo_provider: selectedProvider,
+                            concurrency: {
+                                global_max: parseInt(formData.get('concurrency_global_max')),
+                                build_max: parseInt(formData.get('concurrency_build_max')),
+                                chat_max: parseInt(formData.get('concurrency_chat_max')),
+                                cmd_max: parseInt(formData.get('concurrency_cmd_max'))
+                            },
+                            jira: {
+                                enabled: selectedProvider === 'jira',
+                                instance: formData.get('jira_instance'),
+                                project_key: formData.get('jira_project_key'),
+                                email: formData.get('jira_email'),
+                                api_token: formData.get('jira_api_token'),
+                                status_pickup: formData.get('jira_status_pickup'),
+                                status_done: formData.get('jira_status_done')
+                            }
+                        };
+
+                        try {
+                            const res = await fetch('/projects', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            });
+                            if (res.ok) {
+                                updateSubmitButtonStatus('saved');
+                                showToast('Settings saved successfully');
+                            } else {
+                                updateSubmitButtonStatus('error');
+                                const err = await res.text();
+                                showToast('Error saving settings: ' + err, 'error');
+                            }
+                        } catch (err) {
+                            updateSubmitButtonStatus('error');
+                            showToast('Error saving settings: ' + err.message, 'error');
+                        }
+                        {{else}}
+                        const data = {
+                            max_global_containers: parseInt(formData.get('max_global_containers')),
+                            max_global_build_containers: parseInt(formData.get('max_global_build_containers')),
+                            max_global_chat_containers: parseInt(formData.get('max_global_chat_containers')),
+                            max_global_cmd_containers: parseInt(formData.get('max_global_cmd_containers'))
+                        };
+
+                        try {
+                            const res = await fetch('/settings/global/save', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            });
+                            if (res.ok) {
+                                updateSubmitButtonStatus('saved');
+                                showToast('Global settings saved successfully');
+                            } else {
+                                updateSubmitButtonStatus('error');
+                                const err = await res.text();
+                                showToast('Error saving global settings: ' + err, 'error');
+                            }
+                        } catch (err) {
+                            updateSubmitButtonStatus('error');
+                            showToast('Error saving global settings: ' + err.message, 'error');
+                        }
+                        {{end}}
+                    });
+                }
+            </script>
+        </div>
+        <div class="space-y-6">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-slate-200 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">monitoring</span>
+                    System Health
+                </h3>
+            <div hx-get="/health-info" hx-trigger="load, every 35s" hx-swap="innerHTML">
+                <div class="animate-pulse flex space-x-4">
+                    <div class="flex-1 space-y-4 py-1">
+                        <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
+                        <div class="space-y-2">
+                            <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                            <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-5/6"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <h3 class="text-lg font-bold text-red-400 mb-2 flex items-center gap-2">
+                <span class="material-symbols-outlined text-red-400">dangerous</span>
+                Danger Zone
+            </h3>
+            <p class="text-slate-500 text-sm mb-4">Actions here can affect the availability of the service.</p>
+            <div class="flex flex-wrap gap-4">
+                <button 
+                    hx-post="/rebuild-restart"
+                    hx-confirm="Rebuild and restart API?"
+                    hx-target="#rebuild-restart-response"
+                    class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/50 px-4 py-2 rounded font-semibold text-sm transition-all"
+                >
+                    REBUILD AND RESTART API
+                </button>
+                <button 
+                    hx-post="/rebuild-restart-scheduler"
+                    hx-confirm="Rebuild and restart scheduler?"
+                    hx-target="#rebuild-restart-response"
+                    class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/50 px-4 py-2 rounded font-semibold text-sm transition-all"
+                >
+                    REBUILD AND RESTART SCHEDULER
+                </button>
+            </div>
+            <div id="rebuild-restart-response" class="mt-4 text-sm text-slate-400 font-mono"></div>
+        </div>
+    </div>
+</section>
+{{end}}

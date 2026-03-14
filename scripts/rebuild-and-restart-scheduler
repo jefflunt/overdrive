@@ -1,0 +1,25 @@
+#!/bin/bash
+# Setup logging with timestamps
+exec > >(while IFS= read -r line || [ -n "$line" ]; do
+    if [[ ! "$line" =~ ^\[[0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
+        printf "[$(date +'%Y-%m-%d %H:%M:%S')] %s\n" "$line"
+    else
+        printf "%s\n" "$line"
+    fi
+done) 2>&1
+
+set -e
+
+echo "Updating code..."
+git pull || echo "git pull failed, continuing with current code"
+
+echo "Rebuilding scheduler..."
+./scripts/scheduler-build
+
+echo "Killing old scheduler..."
+./scripts/scheduler-kill || true
+
+echo "Starting new scheduler..."
+./bin/scheduler &
+
+echo "Scheduler restart complete."

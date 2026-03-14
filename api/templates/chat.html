@@ -1,0 +1,379 @@
+{{define "title"}}{{.Project.Name}} Chat{{end}}
+
+{{define "head"}}
+<style>
+</style>
+{{end}}
+
+{{define "content"}}
+<div class="flex flex-col h-full gap-3 md:gap-4">
+    <!-- Chat List (Top Bar) -->
+    <div class="w-full flex flex-col bg-white dark:bg-black border border-slate-300 dark:border-slate-700 max-h-32 md:max-h-52 shadow-none">
+        <div class="p-3 border-b border-slate-300 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900">
+            <h3 class="text-base font-mono uppercase tracking-widest font-bold text-slate-500">
+                <a href="/projects/{{.Project.Name}}/chat" hx-boost="true" class="hover:text-primary transition-colors cursor-pointer">
+                    {{if .ShowTrash}}trash{{else}}chats{{end}}
+                </a>
+            </h3>
+            <div class="flex items-center gap-2">
+                <button hx-get="/projects/{{.Project.Name}}/chat/list?trash={{if .ShowTrash}}false{{else}}true{{end}}" hx-target="#chat-sidebar-items" class="p-1 text-slate-400 hover:text-primary transition-colors {{if .ShowTrash}}text-primary{{end}}" title="{{if .ShowTrash}}Show active chats{{else}}Show trash{{end}}">
+                    <span class="material-symbols-outlined">{{if .ShowTrash}}chat{{else}}delete{{end}}</span>
+                </button>
+                <button hx-post="/projects/{{.Project.Name}}/chat/create" hx-target="#chat-window" class="text-primary dark:text-primary-dark hover:opacity-80 transition-opacity">
+                    <span class="material-symbols-outlined font-bold">add</span>
+                </button>
+            </div>
+        </div>
+        <div id="chat-sidebar-items" hx-get="/projects/{{.Project.Name}}/chat/list" hx-trigger="load, chatListChanged from:body" class="flex-1 overflow-y-auto">
+            {{template "chat-sidebar-items" .}}
+        </div>
+    </div>
+
+    <!-- Chat Window -->
+    <div class="flex-1 flex flex-col relative min-h-0">
+        <!-- Loading Spinner -->
+        <div id="chat-window" class="flex-1 flex flex-col bg-white dark:bg-black border border-slate-300 dark:border-slate-700 min-h-0 shadow-none">
+            {{if .Current}}
+                {{template "chat-messages" .}}
+            {{else}}
+                <div class="flex flex-col items-center justify-center h-full text-slate-500 font-mono">
+                    <span class="material-symbols-outlined text-6xl mb-4 opacity-20">terminal</span>
+                    <p class="uppercase tracking-widest text-xs">Select or create chat</p>
+                </div>
+            {{end}}
+        </div>
+    </div>
+</div>
+
+<!-- Rename Chat Modal -->
+<div id="renameChatModal" class="modal">
+    <div class="glass-panel p-8 rounded-lg border border-slate-200 dark:border-border-dark w-[400px] max-w-[90%] space-y-6">
+        <div class="flex justify-between items-center">
+            <h2 class="text-xl font-display font-bold">Rename Chat</h2>
+            <button onclick="hideRenameModal()" class="text-slate-400 hover:text-slate-100 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form id="renameChatForm" hx-post="" hx-trigger="submit" hx-swap="none" hx-on::after-request="if(event.detail.successful) hideRenameModal()" class="space-y-4">
+            <div class="space-y-1">
+                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Chat Title</label>
+                <input type="text" name="title" id="renameChatTitleInput" required class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30 dark:focus:ring-primary-dark/30 focus:border-primary/50 dark:focus:border-primary-dark/50" placeholder="Enter new title">
+            </div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-border-dark">
+                <button type="button" onclick="hideRenameModal()" class="px-6 py-2 rounded text-slate-400 hover:text-slate-100 transition-colors text-sm font-semibold">CANCEL</button>
+                <button type="submit" class="bg-primary dark:bg-primary-dark hover:bg-primary/90 dark:hover:bg-primary-dark/90 text-black px-6 py-2 rounded font-semibold text-sm transition-all">SAVE</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openRenameModal(id, title) {
+        const modal = document.getElementById('renameChatModal');
+        const form = document.getElementById('renameChatForm');
+        const input = document.getElementById('renameChatTitleInput');
+        const projectName = "{{.Project.Name}}";
+        
+        form.setAttribute('hx-post', `/projects/${projectName}/chat/rename/${id}`);
+        htmx.process(form); // Re-process form to pick up new hx-post
+        
+        input.value = title;
+        modal.style.display = 'flex';
+        input.focus();
+        input.select();
+    }
+
+    function hideRenameModal() {
+        document.getElementById('renameChatModal').style.display = 'none';
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            hideRenameModal();
+        }
+    });
+</script>
+
+{{end}}
+
+{{define "chat-sidebar-items"}}
+    {{$list := .Chats}}
+    {{if .ShowTrash}}
+        {{$list = .DeletedChats}}
+    {{end}}
+
+    {{range $list}}
+    <div class="group relative border-b border-dashed border-slate-200 dark:border-slate-800 last:border-0">
+        <a hx-get="/projects/{{$.Project.Name}}/chat/messages/{{.ID}}" hx-target="#chat-window" hx-push-url="/projects/{{$.Project.Name}}/chat?id={{.ID}}" class="block py-3 pl-4 pr-16 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer {{if $.Current}}{{if eq $.Current.ID .ID}}bg-slate-100 dark:bg-slate-800 border-l-4 border-primary dark:border-primary-dark !pl-3{{end}}{{end}}">
+            <div class="text-xs font-mono font-bold truncate {{if $.Current}}{{if eq $.Current.ID .ID}}text-primary dark:text-primary-dark{{end}}{{end}}">{{.Title}}</div>
+            <div class="text-[10px] text-slate-500 font-mono mt-1 opacity-70">{{if $.ShowTrash}}Deleted: {{formatDate .DeletedAt}}{{else}}{{formatDate .UpdatedAt}}{{end}}</div>
+        </a>
+        <div class="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+            {{if $.ShowTrash}}
+                <button hx-post="/projects/{{$.Project.Name}}/chat/restore/{{.ID}}" hx-target="#chat-window" hx-confirm="Restore this chat?" class="p-1 text-slate-400 hover:text-green-500 transition-colors" title="Restore">
+                    <span class="material-symbols-outlined text-lg font-bold">restore</span>
+                </button>
+                <button hx-delete="/projects/{{$.Project.Name}}/chat/delete/{{.ID}}?permanent=true" hx-target="#chat-window" hx-confirm="Permanently delete this chat? This cannot be undone." class="p-1 text-slate-400 hover:text-red-500 transition-colors" title="Delete permanently">
+                    <span class="material-symbols-outlined text-lg font-bold">delete_forever</span>
+                </button>
+            {{else}}
+                <button data-id="{{.ID}}" data-title="{{.Title}}" onclick="openRenameModal(this.dataset.id, this.dataset.title)" class="p-1 text-slate-400 hover:text-primary transition-colors" title="Rename chat">
+                    <span class="material-symbols-outlined text-lg font-bold">edit</span>
+                </button>
+                <button hx-delete="/projects/{{$.Project.Name}}/chat/delete/{{.ID}}" hx-target="#chat-window" hx-confirm="Move this chat to trash?" class="p-1 text-slate-400 hover:text-red-500 transition-colors" title="Move to trash">
+                    <span class="material-symbols-outlined text-lg font-bold">delete</span>
+                </button>
+            {{end}}
+        </div>
+    </div>
+    {{else}}
+    <div class="p-8 text-center text-xs font-mono text-slate-500 uppercase tracking-widest opacity-50">{{if .ShowTrash}}Trash is empty{{else}}No chats{{end}}</div>
+    {{end}}
+{{end}}
+
+{{define "chat-messages"}}
+    <style>
+        .htmx-request .send-text, .htmx-request .send-icon { display: none; }
+        .htmx-request .loading-icon { display: inline-block !important; }
+    </style>
+    <div class="flex-1 flex flex-col min-h-0">
+        <div class="p-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-between items-center">
+            <h2 class="text-sm font-mono font-bold text-primary dark:text-primary-dark truncate">{{.Current.Title}}</h2>
+        </div>
+        {{if .Current.DeletedAt}}
+        <div class="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 p-3 flex justify-between items-center">
+            <div class="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs font-mono font-bold uppercase tracking-wider">
+                <span class="material-symbols-outlined text-sm">info</span>
+                This chat is in the trash
+            </div>
+            <button hx-post="/projects/{{.Project.Name}}/chat/restore/{{.Current.ID}}" hx-target="#chat-window" class="text-[10px] font-mono font-bold uppercase tracking-widest border border-red-600 dark:border-red-400 text-red-600 dark:text-red-400 px-3 py-1 hover:bg-red-600 hover:text-white dark:hover:bg-red-400 dark:hover:text-black transition-colors">
+                Restore
+            </button>
+        </div>
+        {{end}}
+
+        <!-- Messages Area -->
+        <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 md:p-6 scroll-smooth">
+            {{template "chat-messages-inner" .}}
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-4 md:p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pb-6">
+            {{if .Current.DeletedAt}}
+            <div class="flex items-center justify-center p-4 border border-dashed border-slate-300 dark:border-slate-700 text-slate-500 font-mono text-xs uppercase tracking-widest">
+                Chat is read-only in trash
+            </div>
+            {{else}}
+            <form hx-post="/projects/{{.Project.Name}}/chat/send" hx-target="#chat-messages-container" hx-swap="beforeend" enctype="multipart/form-data" class="relative group" 
+                  hx-on::before-request="chatBeforeRequest(this)"
+                  hx-on::after-request="chatAfterRequest(event)">
+                <input type="hidden" name="chat_id" value="{{.Current.ID}}">
+                
+                <div class="flex items-start gap-3 bg-white dark:bg-black border border-slate-300 dark:border-slate-700 p-3 shadow-none focus-within:border-primary dark:focus-within:border-primary-dark transition-colors rounded-none">
+                    <span class="text-primary dark:text-primary-dark font-mono font-bold mt-2 select-none">&gt;</span>
+                    <textarea name="content" rows="1" class="flex-1 bg-transparent border-none focus:ring-0 resize-none py-2 font-mono text-sm leading-relaxed text-slate-900 dark:text-slate-100 placeholder-slate-400" placeholder="Enter command..." required oninput="this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px';"></textarea>
+                    <button type="submit" hx-disabled-elt="this" class="p-2 text-primary dark:text-primary-dark hover:opacity-80 transition-opacity uppercase text-[10px] tracking-widest font-bold flex items-center gap-1 disabled:opacity-50">
+                        <span class="send-text">SEND</span>
+                        <span class="material-symbols-outlined text-sm send-icon">send</span>
+                        <span class="material-symbols-outlined text-sm animate-spin hidden loading-icon">progress_activity</span>
+                    </button>
+                </div>
+            </form>
+            {{end}}
+        </div>
+    </div>
+    <script>
+        window.chatBeforeRequest = function(form) {
+            const container = document.getElementById('chat-messages-container');
+            const emptyState = document.getElementById('chat-empty-state');
+            if (emptyState) emptyState.classList.add('hidden');
+            const formData = new FormData(form);
+            const content = formData.get('content');
+            if (content) {
+                const div = document.createElement('div');
+                div.id = 'optimistic-message';
+                div.className = 'w-full flex flex-col mb-8 font-mono group optimistic-msg opacity-50';
+                div.innerHTML = `
+                    <div class='w-full flex items-center gap-3 border-b border-dashed border-slate-300 dark:border-slate-700 pb-2 mb-3'>
+                        <span class='text-xs uppercase tracking-widest font-bold text-primary dark:text-primary-dark'>USER</span>
+                        <span class='text-[10px] text-slate-400 font-mono opacity-50'>sending...</span>
+                    </div>
+                    <div class='w-full pl-4 md:pl-6 border-l-2 border-primary dark:border-primary-dark'>
+                        <div class='prose dark:prose-invert prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-100 dark:prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-200 dark:prose-pre:border-slate-800 prose-pre:rounded-none prose-code:font-mono'>
+                            <p>${content.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</p>
+                        </div>
+                        <div class='mt-4 flex items-center gap-3'>
+                            <button class='text-slate-400 hover:text-primary transition-colors flex items-center copy-btn'>
+                                <span class='material-symbols-outlined text-xl'>content_copy</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                const btn = div.querySelector('.copy-btn');
+                btn.dataset.content = content;
+                btn.onclick = function() { copyToClipboard(this.dataset.content, this.querySelector('span')); };
+                container.appendChild(div);
+                requestAnimationFrame(() => {
+                    container.scrollTop = container.scrollHeight;
+                });
+                // Clear the textarea immediately but allow HTMX to capture data first
+                const ta = form.querySelector('textarea');
+                if (ta) {
+                    setTimeout(() => { 
+                        ta.value = ''; 
+                        ta.style.height = 'auto';
+                    }, 10);
+                }
+            }
+        };
+
+        window.chatAfterRequest = function(event) {
+            if(event.detail.successful) {
+                event.target.reset(); // Final cleanup
+                document.getElementById('optimistic-message')?.remove();
+            } else {
+                const optMsg = document.getElementById('optimistic-message');
+                if (optMsg) {
+                    optMsg.classList.remove('opacity-50');
+                    optMsg.classList.add('text-red-500');
+                    optMsg.querySelector('.text-[10px]').innerText = 'failed to send';
+                }
+            }
+        };
+
+        (function() {
+            // HTMX Debugging
+            document.body.addEventListener("htmx:beforeRequest", function(evt) {
+                console.log("[HTMX] Before Request:", evt.detail.path, evt.detail.elt);
+            });
+            document.body.addEventListener("htmx:afterRequest", function(evt) {
+                console.log("[HTMX] After Request:", evt.detail.path, "Status:", evt.detail.xhr.status);
+            });
+            document.body.addEventListener("htmx:responseError", function(evt) {
+                console.error("[HTMX] Response Error:", evt.detail.path, "Status:", evt.detail.xhr.status);
+            });
+
+            // Auto-scroll to bottom
+            const container = document.getElementById('chat-messages-container');
+            if (container) {
+                const scrollToBottom = () => {
+                    container.scrollTop = container.scrollHeight;
+                };
+
+                // Initial scroll
+                scrollToBottom();
+
+                // Observe for any DOM changes inside the container (new messages or streaming)
+                const observer = new MutationObserver(() => {
+                    scrollToBottom();
+                });
+
+                observer.observe(container, { 
+                    childList: true, 
+                    subtree: true 
+                });
+
+                // Also scroll when images load
+                container.addEventListener('load', (e) => {
+                    if (e.target.tagName === 'IMG') {
+                        scrollToBottom();
+                    }
+                }, true);
+            }
+        })();
+    </script>
+{{end}}
+
+{{define "chat-messages-inner"}}
+    {{range .Current.Messages}}
+        {{template "chat-message" dict "Project" $.Project "ChatID" $.Current.ID "Role" .Role "Timestamp" .Timestamp "Content" .Content "Images" .Images}}
+    {{else}}
+    <div id="chat-empty-state" class="flex flex-col items-center justify-center h-full text-slate-500 font-mono">
+        <span class="text-4xl mb-4 opacity-20">_</span>
+        <p class="uppercase tracking-widest text-xs">build what you wish existed</p>
+    </div>
+    {{end}}
+
+    {{if .IsGenerating}}
+        {{template "chat-processing" .}}
+    {{end}}
+{{end}}
+
+{{define "chat-message"}}
+<div class="w-full flex flex-col mb-8 font-mono group">
+    <div class="w-full flex items-center gap-3 border-b border-dashed border-slate-300 dark:border-slate-700 pb-2 mb-3">
+        <span class="text-xs uppercase tracking-widest font-bold {{if eq .Role "user"}}text-primary dark:text-primary-dark{{else}}text-purple-600 dark:text-purple-400{{end}}">
+            {{if eq .Role "user"}}USER{{else}}AI{{end}}
+        </span>
+        <span class="text-[10px] text-slate-400 font-mono opacity-50">{{formatDate .Timestamp}}</span>
+    </div>
+
+    <div class="w-full pl-4 md:pl-6 border-l-2 {{if eq .Role "user"}}border-primary dark:border-primary-dark{{else}}border-purple-600 dark:border-purple-400{{end}}">
+        {{if .Images}}
+        <div class="flex flex-wrap gap-2 mb-4">
+            {{range .Images}}
+            <img src="{{.}}" class="max-w-xs max-h-64 rounded-none border border-slate-200 dark:border-slate-700">
+            {{end}}
+        </div>
+        {{end}}
+        <div class="prose dark:prose-invert prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-100 dark:prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-200 dark:prose-pre:border-slate-800 prose-pre:rounded-none prose-code:font-mono">
+            {{markdown .Content}}
+        </div>
+        
+        <div class="mt-4 flex items-center gap-3">
+            <button class="text-slate-400 hover:text-primary transition-colors flex items-center" 
+                    data-content="{{.Content}}"
+                    onclick="copyToClipboard(this.dataset.content, this.querySelector('span'))">
+                <span class="material-symbols-outlined text-xl">content_copy</span>
+            </button>
+            {{if ne .Role "user"}}
+            <form hx-post="/projects/{{.Project.Name}}/chat/build" hx-swap="outerHTML" class="inline-block">
+                <input type="hidden" name="content" value="{{.Content}}">
+                <button type="submit" class="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 border border-purple-600 dark:border-purple-400 px-3 py-1.5 hover:bg-purple-600 hover:text-white dark:hover:bg-purple-400 dark:hover:text-black transition-colors">
+                    <span class="material-symbols-outlined text-sm">build</span>
+                    Build
+                </button>
+            </form>
+            <form hx-post="/projects/{{.Project.Name}}/chat/send" hx-target="#chat-messages-container" hx-swap="beforeend" class="inline-block"
+                  hx-on::before-request="chatBeforeRequest(this)"
+                  hx-on::after-request="chatAfterRequest(event)">
+                <input type="hidden" name="chat_id" value="{{.ChatID}}">
+                <input type="hidden" name="content" value="Please create a detailed, step-by-step plan for an independent AI agent to implement the code above. Show me the plan in the chat for my review. Do NOT write the plan to any file - only display it in the chat.">
+                <button type="submit" class="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-400 px-3 py-1.5 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-400 dark:hover:text-black transition-colors">
+                    <span class="material-symbols-outlined text-sm">assignment</span>
+                    Plan
+                </button>
+            </form>
+            {{end}}
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{define "chat-processing"}}
+<div id="chat-processing-indicator"
+     hx-get="/projects/{{.Project.Name}}/chat/sync/{{.Current.ID}}" 
+     hx-trigger="every 1s" 
+     hx-target="this" 
+     hx-swap="outerHTML"
+     class="w-full flex flex-col mb-8 font-mono animate-pulse">
+    <div class="w-full flex items-center gap-3 border-b border-dashed border-slate-300 dark:border-slate-700 pb-2 mb-3">
+         <span class="text-xs uppercase tracking-widest font-bold text-purple-600 dark:text-purple-400">PROCESSING</span>
+    </div>
+    <div class="w-full pl-4 md:pl-6 border-l-2 border-purple-600 dark:border-purple-400 py-2">
+        <span class="inline-block w-3 h-5 bg-purple-600/50 dark:bg-purple-400/50 animate-blink"></span>
+    </div>
+</div>
+{{end}}
+
+{{define "chat-error"}}
+<div class="w-full flex flex-col mb-8 font-mono text-red-600 dark:text-red-400">
+    <div class="w-full flex items-center gap-3 border-b border-dashed border-red-300 dark:border-red-700 pb-2 mb-3">
+         <span class="text-xs uppercase tracking-widest font-bold">ERROR</span>
+    </div>
+    <div class="w-full pl-4 md:pl-6 border-l-2 border-red-600 dark:border-red-400 py-2">
+        <p class="text-sm">{{.Error}}</p>
+    </div>
+</div>
+{{end}}

@@ -1,0 +1,33 @@
+auth.json
+ssh.key
+ssh.key.pub
+ssh_config
+
+opencode_acp.log
+scheduler_start_time
+
+log/*
+logs/*
+projects/*
+!projects/.keep
+!tmp/.keep
+
+api.log
+jobs/*
+.DS_Store
+
+# Open Source / Repository Hygiene Additions
+# Exclude global/nested logs
+*.log
+
+# Exclude compiled binaries directory
+bin/
+cmd/api-server/api-server
+
+# Exclude local settings
+.global_settings.yml
+
+# IDE / OS specific exclusions
+.idea/
+.vscode/
+__pycache__/

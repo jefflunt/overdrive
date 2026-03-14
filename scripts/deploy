@@ -1,0 +1,101 @@
+#!/bin/bash
+# Setup logging with timestamps
+exec > >(while IFS= read -r line || [ -n "$line" ]; do
+    if [[ ! "$line" =~ ^\[[0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
+        printf "[$(date +'%Y-%m-%d %H:%M:%S')] %s\n" "$line"
+    else
+        printf "%s\n" "$line"
+    fi
+done) 2>&1
+
+set -e
+
+# Validate required environment variables
+# Note: We need REMOTE_HOST in addition to the standard worker vars
+REQUIRED_VARS=("DOCKERFILE" "REPO_URL" "BRANCH_PARENT" "MODEL" "COMMIT_MSG" "PROMPT" "SSH_KEY_PATH" "REMOTE_HOST")
+MISSING_VARS=()
+
+for VAR in "${REQUIRED_VARS[@]}"; do
+  if [ -z "${!VAR}" ]; then
+    MISSING_VARS+=("$VAR")
+  fi
+done
+
+if [ ${#MISSING_VARS[@]} -gt 0 ]; then
+  echo "Error: The following required environment variables are not set:"
+  printf "  - %s\n" "${MISSING_VARS[@]}"
+  echo ""
+  echo "Usage: This script relies on these variables being set externally."
+  exit 1
+fi
+
+# --- Step 1: Deploy (Build & Push) ---
+echo ">>> Step 1: Deploying to $REMOTE_HOST..."
+
+# Handle SSH Key for build context
+TARGET_KEY="./ssh.key"
+# Only copy if the source is not the target file itself
+if [[ ! "$SSH_KEY_PATH" -ef "$TARGET_KEY" ]]; then
+  echo "Copying SSH key to build context..."
+  cp "$SSH_KEY_PATH" "$TARGET_KEY"
+  # Only clean up if we created a copy
+  trap 'rm -f "$TARGET_KEY"' EXIT
+else
+  echo "Using existing SSH key in build context."
+fi
+
+echo "Building Podman image from imgs/$DOCKERFILE..."
+podman build -f "imgs/$DOCKERFILE" -t "$DOCKERFILE" .
+
+echo "Deploying image to $REMOTE_HOST..."
+# Compress with gzip for faster transfer over network
+podman save "$DOCKERFILE" | gzip | ssh "$REMOTE_HOST" 'gunzip | podman load'
+
+echo "Deployment complete!"
+
+# --- Step 2: Run ---
+echo ">>> Step 2: Running worker on $REMOTE_HOST..."
+
+# Generate Job ID for local logging reference
+to_base62() {
+  local chars="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+  local n=$1
+  local res=""
+  while [ "$n" -gt 0 ]; do
+    res="${chars:$((n % 62)):1}$res"
+    n=$((n / 62))
+  done
+  echo "$res"
+}
+JOB_ID=$(to_base62 $(date +%s%N))
+LOG_DIR="$(pwd)/logs/$JOB_ID"
+mkdir -p "$LOG_DIR"
+echo "Streaming logs to: $LOG_DIR/remote.log"
+
+# Escape variables for SSH
+SAFE_REPO_URL=$(printf %q "$REPO_URL")
+SAFE_BRANCH_PARENT=$(printf %q "$BRANCH_PARENT")
+SAFE_COMMIT_MSG=$(printf %q "$COMMIT_MSG")
+SAFE_PROMPT=$(printf %q "$PROMPT")
+SAFE_MODEL=$(printf %q "$MODEL")
+
+# Run the container and capture exit code
+set +e
+ssh "$REMOTE_HOST" "podman run --rm \
+  -e REPO_URL=$SAFE_REPO_URL \
+  -e PRIMARY_BRANCH=$SAFE_BRANCH_PARENT \
+  -e COMMIT_MSG=$SAFE_COMMIT_MSG \
+  -e PROMPT=$SAFE_PROMPT \
+  -e MODEL=$SAFE_MODEL \
+  $DOCKERFILE" | tee "$LOG_DIR/remote.log"
+WORKER_EXIT_CODE=${PIPESTATUS[0]}
+set -e
+
+if [ $WORKER_EXIT_CODE -eq 2 ]; then
+  echo ">>> Result: NO-OP (No changes to commit)"
+elif [ $WORKER_EXIT_CODE -ne 0 ]; then
+  echo ">>> Result: CRASH (Worker failed with exit code $WORKER_EXIT_CODE)"
+  exit $WORKER_EXIT_CODE
+else
+  echo ">>> Result: DONE (Changes pushed)"
+fi

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Find processes named scheduler
+PIDS=$(pgrep -f "./bin/scheduler")
+
+# Clean up PIDS to ensure it's just numbers
+PIDS=$(echo "$PIDS" | grep -E '^[0-9]+$' || true)
+
+if [ -z "$PIDS" ]; then
+  echo "No scheduler processes found."
+  exit 0
+fi
+
+echo "Killing processes: $PIDS"
+kill $PIDS 2>/dev/null || kill -9 $PIDS 2>/dev/null
+
+echo "Done."

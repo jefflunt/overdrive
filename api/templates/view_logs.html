@@ -1,0 +1,75 @@
+{{define "title"}}Logs - {{.JobID}}{{end}}
+
+{{define "head"}}
+<style>
+    /* ANSI Colors for logs */
+    .ansi-bold { font-weight: bold; }
+    .ansi-fg-30 { color: #000000; }
+    .ansi-fg-31 { color: #f14c4c; }
+    .ansi-fg-32 { color: var(--primary-color); }
+    .ansi-fg-33 { color: #e5e510; }
+    .ansi-fg-34 { color: #3b8eea; }
+    .ansi-fg-35 { color: #d670d6; }
+    .ansi-fg-36 { color: #29b8db; }
+    .ansi-fg-37 { color: #e5e5e5; }
+    .ansi-fg-bright-90 { color: #666666; }
+    .ansi-fg-bright-91 { color: #f14c4c; }
+    .ansi-fg-bright-92 { color: #23d18b; }
+    .ansi-fg-bright-93 { color: #f5f543; }
+    .ansi-fg-bright-94 { color: #3b8eea; }
+    .ansi-fg-bright-95 { color: #d670d6; }
+    .ansi-fg-bright-96 { color: #29b8db; }
+    .ansi-fg-bright-97 { color: #e5e5e5; }
+</style>
+{{end}}
+
+{{define "content"}}
+<section class="max-w-6xl mx-auto w-full flex flex-col h-full">
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-4">
+            <button onclick="history.back()" class="text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <h2 class="text-xl font-display font-bold text-slate-900 dark:text-slate-200 flex items-center gap-2">
+                Job Archive <span class="text-xs font-mono font-normal text-slate-500 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded ml-2 uppercase tracking-widest flex items-center gap-1">
+                    <button onclick="copyToClipboard('{{.JobID}}', this)" class="material-symbols-outlined text-[14px] hover:text-primary transition-colors cursor-pointer" title="Copy Job ID">link</button>
+                    {{.JobID}}
+                </span>
+            </h2>
+        </div>
+        {{if .ExitCodeHtml}}
+        <div class="text-[10px] font-mono text-slate-400 bg-slate-100/50 dark:bg-slate-900/50 px-3 py-1 rounded border border-slate-200 dark:border-border-dark">
+            {{.ExitCodeHtml}}
+        </div>
+        {{end}}
+    </div>
+
+    <div class="flex-1 glass-panel border border-slate-200 dark:border-border-dark rounded-lg overflow-hidden flex flex-col min-h-0 bg-black/40">
+        {{if .Job.TestStatus}}
+        <div class="p-6 border-b border-slate-200 dark:border-border-dark {{if eq .Job.TestStatus "passed"}}bg-green-500/5{{else}}bg-red-500/5{{end}}">
+            <h3 class="text-sm font-mono font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined {{if eq .Job.TestStatus "passed"}}text-green-500{{else}}text-red-500{{end}}">
+                    {{if eq .Job.TestStatus "passed"}}check_circle{{else}}error{{end}}
+                </span>
+                Test Results: {{.Job.TestStatus}}
+            </h3>
+            {{if .Job.TestOutput}}
+            <div class="bg-black/20 rounded p-4 font-mono text-[11px] overflow-x-auto max-h-64 overflow-y-auto">
+                <pre class="whitespace-pre text-slate-400 m-0">{{.Job.TestOutput}}</pre>
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+
+        <div class="flex-1 overflow-y-auto p-6 font-mono text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+            <pre class="whitespace-pre-wrap break-words m-0">{{.Logs}}</pre>
+        </div>
+        <div class="px-4 md:px-6 py-3 border-t border-slate-200 dark:border-border-dark bg-panel-light/80 dark:bg-panel-dark/80 flex justify-between items-center pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-3">
+            <div class="text-[10px] font-mono text-slate-500 uppercase">Archived log output</div>
+        <div class="flex gap-4">
+             <button onclick="window.scrollTo(0, 0)" class="text-[10px] font-mono text-slate-500 hover:text-slate-300 uppercase">Top</button>
+        </div>
+        </div>
+    </div>
+</section>
+{{end}}

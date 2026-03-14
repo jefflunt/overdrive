@@ -1,0 +1,26 @@
+#!/bin/bash
+# Setup logging with timestamps
+exec > >(while IFS= read -r line || [ -n "$line" ]; do
+    if [[ ! "$line" =~ ^\[[0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
+        printf "[$(date +'%Y-%m-%d %H:%M:%S')] %s\n" "$line"
+    else
+        printf "%s\n" "$line"
+    fi
+done) 2>&1
+
+set -e
+
+echo "Updating code..."
+git pull || echo "git pull failed, continuing with current code"
+
+echo "Rebuilding api..."
+./scripts/server-build
+
+echo "Killing old api..."
+./scripts/server-kill || true
+
+echo "Starting new api..."
+export PATH="/opt/podman/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+./bin/overdrive > opencode_acp.log 2>&1 &
+
+echo "API restart complete."

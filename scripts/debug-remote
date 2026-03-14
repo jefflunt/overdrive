@@ -1,0 +1,28 @@
+#!/bin/bash
+set -e
+
+# Configuration
+export DOCKERFILE="${DOCKERFILE:-worker}"
+export REMOTE_HOST="${REMOTE_HOST:-overdrive-worker-01}"
+
+# Default Environment Variables (matches worker-demo)
+# These are passed to the container so you can test commands easily
+export REPO_URL="${REPO_URL:-git@git:/volume1/git/infinimaze.git}"
+export PRIMARY_BRANCH="${PRIMARY_BRANCH:-main}"
+export PROMPT="${PROMPT:-hi}"
+export MODEL="${MODEL:-google/gemini-3-flash-preview}"
+export COMMIT_MSG="${COMMIT_MSG:-Debug session}"
+
+echo ">>> Connecting to $REMOTE_HOST..."
+echo ">>> Starting interactive shell in '$DOCKERFILE' container..."
+echo ">>> Environment variables (REPO_URL, etc.) will be available."
+
+# Escape variables for SSH
+SAFE_REPO_URL=$(printf %q "$REPO_URL")
+SAFE_PRIMARY_BRANCH=$(printf %q "$PRIMARY_BRANCH")
+
+ssh -t "$REMOTE_HOST" "podman run -it --rm \
+  -e REPO_URL=$SAFE_REPO_URL \
+  -e PRIMARY_BRANCH=$SAFE_PRIMARY_BRANCH \
+  --entrypoint /bin/bash \
+  $DOCKERFILE"

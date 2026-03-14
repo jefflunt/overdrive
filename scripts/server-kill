@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Find processes named overdrive or listening on 3281
+PIDS=$(pgrep -f "./bin/overdrive")
+
+if [ -z "$PIDS" ]; then
+  # Fallback to port check if pgrep fails to find it by name
+  PIDS=$(lsof -i :3281 -t)
+fi
+
+# Clean up PIDS to ensure it's just numbers (in case lsof misbehaves again)
+PIDS=$(echo "$PIDS" | grep -E '^[0-9]+$' || true)
+
+if [ -z "$PIDS" ]; then
+  echo "No server processes found."
+  exit 0
+fi
+
+echo "Killing processes: $PIDS"
+kill $PIDS 2>/dev/null || kill -9 $PIDS 2>/dev/null
+
+echo "Done."

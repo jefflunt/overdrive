@@ -1,0 +1,83 @@
+{{define "title"}}Dashboard{{end}}
+
+{{define "head"}}
+<link rel="stylesheet" href="/static/todos.css">
+<script src="/static/dashboard.js"></script>
+<style>
+    #main-content *:not(.material-symbols-outlined) {
+        font-family: 'JetBrains Mono', monospace !important;
+    }
+    .material-symbols-outlined {
+        font-family: 'Material Symbols Outlined' !important;
+    }
+</style>
+{{end}}
+
+{{define "content"}}
+<div class="w-full max-w-none mx-auto py-2 md:py-8 space-y-8 font-mono">
+    
+    <div id="running-jobs-container-wrapper" class="hidden">
+        <h2 class="text-xl font-mono font-bold mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-500 animate-pulse">sync</span>
+            Running Jobs
+        </h2>
+        <div id="running-jobs-container" class="space-y-4">
+            <!-- Jobs will be rendered here -->
+        </div>
+    </div>
+
+    <div id="recent-jobs-container-wrapper" class="hidden">
+        <h2 id="recent-jobs-header" class="text-xl font-mono font-bold mb-4 flex items-center gap-2 cursor-pointer hover:text-primary transition-colors select-none" aria-expanded="true" aria-controls="recent-jobs-container">
+            <span class="material-symbols-outlined text-sm text-slate-400 transition-transform" id="recent-jobs-toggle-icon">expand_more</span>
+            <span class="material-symbols-outlined text-slate-500">history</span>
+            Recent Jobs
+        </h2>
+        <div id="recent-jobs-container" class="space-y-4">
+            <!-- Jobs will be rendered here -->
+        </div>
+    </div>
+
+    <div>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-mono font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined text-yellow-500">star</span>
+                Starred todos
+            </h2>
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="show-completed-starred" class="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary" checked>
+                <span class="text-sm font-mono text-slate-500">show completed</span>
+            </label>
+        </div>
+        <div id="starred-tree-container" class="min-h-[100px]">
+            <div class="flex items-center justify-center h-32">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-mono font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined text-slate-500">checklist</span>
+                All todos
+            </h2>
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="show-completed-all" class="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary" checked>
+                <span class="text-sm font-mono text-slate-500">show completed</span>
+            </label>
+        </div>
+        <div id="all-tree-container" class="min-h-[200px]">
+            <div class="flex items-center justify-center h-64">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        new DashboardManager("running-jobs-container", "recent-jobs-container", "starred-tree-container", "all-tree-container");
+    });
+</script>
+{{end}}

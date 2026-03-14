@@ -1,0 +1,175 @@
+#!/bin/bash
+# Worker execution script used by the API server
+# Expects: REPO_URL, BRANCH_PARENT, COMMIT_MSG, PROMPT, MODEL, JOB_ID, PROJECT_NAME, SSH_KEY, SSH_CONFIG
+
+# Setup logging with timestamps
+exec > >(while IFS= read -r line || [ -n "$line" ]; do
+    if [[ ! "$line" =~ ^\[[0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
+        printf "[$(date +'%Y-%m-%d %H:%M:%S')] %s\n" "$line"
+    else
+        printf "%s\n" "$line"
+    fi
+done) 2>&1
+
+set -e
+
+# Locate podman dynamically
+PODMAN=$(which podman 2>/dev/null || true)
+if [ -z "$PODMAN" ]; then
+  for p in /opt/podman/bin/podman /usr/local/bin/podman /usr/bin/podman; do
+    if [ -x "$p" ]; then
+      PODMAN="$p"
+      break
+    fi
+  done
+fi
+
+if [ -z "$PODMAN" ]; then
+  echo "Error: podman not found"
+  exit 127
+fi
+
+# Validate required inputs
+if [ -z "$JOB_ID" ]; then echo "Error: JOB_ID is required"; exit 1; fi
+if [ -z "$REPO_URL" ]; then echo "Error: REPO_URL is required"; exit 1; fi
+if [ -z "$PROJECT_NAME" ]; then echo "Error: PROJECT_NAME is required"; exit 1; fi
+
+# Create build context
+BUILD_CTX=$(mktemp -d)
+trap 'rm -rf "$BUILD_CTX"' EXIT
+
+# Copy common files
+if [ -d ".opencode" ]; then
+    cp -r .opencode "$BUILD_CTX/"
+else
+    mkdir "$BUILD_CTX/.opencode" # Ensure directory exists for COPY
+fi
+
+cp -r imgs "$BUILD_CTX/"
+
+# Handle authentication
+if [ -n "$AUTH_JSON" ]; then
+    AUTH_JSON_CONTENT="$AUTH_JSON"
+elif [ -f auth.json ]; then
+    AUTH_JSON_CONTENT=$(cat auth.json)
+else
+    AUTH_JSON_CONTENT="{}"
+fi
+
+# Handle SSH Key
+if [ -n "$SSH_KEY" ] && [ -f "$SSH_KEY" ]; then
+    cp "$SSH_KEY" "$BUILD_CTX/ssh.key"
+else
+    echo "Error: SSH_KEY not provided or not found at: $SSH_KEY"
+    exit 1
+fi
+
+# Handle SSH Config
+if [ -n "$SSH_CONFIG" ] && [ -f "$SSH_CONFIG" ]; then
+    cp "$SSH_CONFIG" "$BUILD_CTX/ssh_config"
+else
+    # Create empty config if not provided
+    touch "$BUILD_CTX/ssh_config"
+fi
+
+# Build Base Image
+echo "Ensuring overdrive-base image..."
+"$PODMAN" build -q -t overdrive-base imgs/base > /dev/null
+
+# Determine Project Base Image
+BASE_IMAGE="overdrive-base"
+if [ "$HARNESS_PROVIDER" = "claude-code" ]; then
+    BASE_IMAGE="overdrive-base"
+fi
+
+PROJECT_DOCKERFILE="projects/$PROJECT_NAME/Dockerfile"
+
+if [ -f "$PROJECT_DOCKERFILE" ]; then
+    PROJECT_BASE_TAG="overdrive-base-$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]//g')"
+    echo "Building custom environment for $PROJECT_NAME ($PROJECT_BASE_TAG)..."
+    "$PODMAN" build -q -t "$PROJECT_BASE_TAG" -f "$PROJECT_DOCKERFILE" "projects/$PROJECT_NAME" > /dev/null
+    BASE_IMAGE="$PROJECT_BASE_TAG"
+fi
+
+# Build image
+TAG="worker-$PROJECT_NAME"
+# Sanitize tag
+TAG=$(echo "$TAG" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]//g')
+
+ # Generate dynamic Dockerfile
+APK_COMMAND=""
+if [ -n "$DEPENDENCIES" ]; then
+    # Convert newlines to spaces and trim
+    DEPS_CLEAN=$(printf "%s" "$DEPENDENCIES" | tr '\n' ' ' | xargs)
+    if [ -n "$DEPS_CLEAN" ]; then
+        APK_COMMAND="RUN apk add --no-cache $DEPS_CLEAN"
+    fi
+fi
+
+cat <<EOF > "$BUILD_CTX/Dockerfile"
+FROM $BASE_IMAGE
+
+WORKDIR /overdrive
+
+$APK_COMMAND
+
+COPY .opencode /root/.opencode/
+
+COPY ssh.key /ssh.key
+RUN chmod 600 /ssh.key
+
+# Copy and setup SSH config
+RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
+COPY ssh_config /root/.ssh/config
+RUN chmod 600 /root/.ssh/config
+
+# Copy and setup entrypoint
+COPY imgs/worker-entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+EOF
+
+# Build Final Worker
+"$PODMAN" build -q -f "$BUILD_CTX/Dockerfile" -t "$TAG" "$BUILD_CTX" > /dev/null
+
+# Setup log directory
+LOG_DIR="$(pwd)/projects/$PROJECT_NAME/logs/$JOB_ID"
+mkdir -p "$LOG_DIR"
+
+# Collect custom environment variables
+ENV_ARGS=""
+if [ -n "$WORKER_ENV_NAMES" ]; then
+    IFS=',' read -ra ADDR <<< "$WORKER_ENV_NAMES"
+    for name in "${ADDR[@]}"; do
+        ENV_ARGS="$ENV_ARGS -e $name"
+    done
+fi
+
+# Determine container type
+if [ -z "$CONTAINER_TYPE" ]; then
+  CONTAINER_TYPE="build"
+  if [ -n "$CUSTOM_CMD" ]; then
+      CONTAINER_TYPE="cmd"
+  fi
+fi
+
+# Run container
+exec "$PODMAN" run --rm \
+  --name "overdrive-worker-$PROJECT_NAME-$JOB_ID" \
+  --label "project=$PROJECT_NAME" \
+  --label "type=$CONTAINER_TYPE" \
+  --timeout "${TIMEOUT:-1200}" \
+  -v "$LOG_DIR:/log" \
+  $ENV_ARGS \
+  -e AUTH_JSON="$AUTH_JSON_CONTENT" \
+  -e REPO_URL="$REPO_URL" \
+  -e PRIMARY_BRANCH="${BRANCH_PARENT:-main}" \
+  -e COMMIT_MSG="${COMMIT_MSG:-Worker Job}" \
+  -e PROMPT="$PROMPT" \
+  -e MODEL="${MODEL:-google/gemini-3-flash-preview}" \
+  -e LLM_PROVIDER="$LLM_PROVIDER" \
+  -e HARNESS_PROVIDER="$HARNESS_PROVIDER" \
+  -e TIMEOUT="${TIMEOUT:-1200}" \
+  -e CUSTOM_CMD="$CUSTOM_CMD" \
+  "$TAG"

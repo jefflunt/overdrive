@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+    <title>{{block "title" .}}overdrive{{end}}</title>
+    <script>
+        // Initialize theme before anything else to avoid flash
+        const savedThemeId = localStorage.getItem('theme-id') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedThemeId);
+        const darkThemes = ['dark', 'dracula', 'monokai', 'nord', 'solarized-dark', 'gruvbox-dark', 'one-dark', 'synthwave', 'cyberpunk', 'tokyo-night'];
+        let isDark = darkThemes.includes(savedThemeId);
+        
+        if (savedThemeId === 'custom') {
+            isDark = localStorage.getItem('custom-theme-is-dark') === 'true';
+            const customColors = JSON.parse(localStorage.getItem('custom-theme-colors') || '{}');
+            document.documentElement.style.setProperty('--custom-bg', customColors['--bg-color'] || '#F8FAFC');
+            document.documentElement.style.setProperty('--custom-panel', customColors['--panel-color'] || '#FFFFFF');
+            document.documentElement.style.setProperty('--custom-border', customColors['--border-color'] || '#E2E8F0');
+            document.documentElement.style.setProperty('--custom-text', customColors['--text-color'] || '#0F172A');
+            document.documentElement.style.setProperty('--custom-text-secondary', customColors['--text-secondary'] || '#64748B');
+            document.documentElement.style.setProperty('--custom-primary', customColors['--primary-color'] || '#00A36C');
+        }
+
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/static/icons/icon-192.png">
+    <meta name="theme-color" content="#00A36C">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: "var(--primary-color)",
+                            dark: "var(--primary-color)",
+                        },
+                        "background-light": "var(--bg-color)",
+                        "background-dark": "var(--bg-color)",
+                        "panel-light": "var(--panel-color)",
+                        "panel-dark": "var(--panel-color)",
+                        "border-light": "var(--border-color)",
+                        "border-dark": "var(--border-color)",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "4px",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        :root {
+            --bg-color: #F8FAFC;
+            --panel-color: #FFFFFF;
+            --border-color: #E2E8F0;
+            --text-color: #0F172A;
+            --text-secondary: #64748B;
+            --primary-color: #00A36C;
+            --primary-rgb: 0, 163, 108;
+        }
+        [data-theme='dark'] {
+            --bg-color: #0A0A0B;
+            --panel-color: #020203;
+            --border-color: #1A1A1A;
+            --text-color: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --primary-color: #00FF9D;
+            --primary-rgb: 0, 255, 157;
+        }
+        [data-theme='dracula'] {
+            --bg-color: #282a36;
+            --panel-color: #44475a;
+            --border-color: #6272a4;
+            --text-color: #f8f8f2;
+            --text-secondary: #6272a4;
+            --primary-color: #bd93f9;
+        }
+        [data-theme='monokai'] {
+            --bg-color: #272822;
+            --panel-color: #3e3d32;
+            --border-color: #75715e;
+            --text-color: #f8f8f2;
+            --text-secondary: #75715e;
+            --primary-color: #a6e22e;
+        }
+        [data-theme='nord'] {
+            --bg-color: #2e3440;
+            --panel-color: #3b4252;
+            --border-color: #4c566a;
+            --text-color: #eceff4;
+            --text-secondary: #d8dee9;
+            --primary-color: #88c0d0;
+        }
+        [data-theme='solarized-dark'] {
+            --bg-color: #002b36;
+            --panel-color: #073642;
+            --border-color: #586e75;
+            --text-color: #839496;
+            --text-secondary: #586e75;
+            --primary-color: #268bd2;
+        }
+        [data-theme='gruvbox-dark'] {
+            --bg-color: #282828;
+            --panel-color: #3c3836;
+            --border-color: #504945;
+            --text-color: #ebdbb2;
+            --text-secondary: #928374;
+            --primary-color: #fabd2f;
+        }
+        [data-theme='custom'] {
+            --bg-color: var(--custom-bg, #F8FAFC);
+            --panel-color: var(--custom-panel, #FFFFFF);
+            --border-color: var(--custom-border, #E2E8F0);
+            --text-color: var(--custom-text, #0F172A);
+            --text-secondary: var(--custom-text-secondary, #64748B);
+            --primary-color: var(--custom-primary, #00A36C);
+        }
+        [data-theme='tokyo-night'] {
+            --bg-color: #1a1b26;
+            --panel-color: #24283b;
+            --border-color: #414868;
+            --text-color: #c0caf5;
+            --text-secondary: #565f89;
+            --primary-color: #7aa2f7;
+        }
+        [data-theme='one-dark'] {
+            --bg-color: #282c34;
+            --panel-color: #21252b;
+            --border-color: #181a1f;
+            --text-color: #abb2bf;
+            --text-secondary: #5c6370;
+            --primary-color: #61afef;
+        }
+        [data-theme='synthwave'] {
+            --bg-color: #262335;
+            --panel-color: #241b2f;
+            --border-color: #443551;
+            --text-color: #ffffff;
+            --text-secondary: #848bb2;
+            --primary-color: #ff7edb;
+        }
+        [data-theme='cyberpunk'] {
+            --bg-color: #000b1e;
+            --panel-color: #001621;
+            --border-color: #002a3a;
+            --text-color: #00fbff;
+            --text-secondary: #00a6ad;
+            --primary-color: #f0f600;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            color: var(--text-color);
+        }
+        .text-slate-900, .dark .text-slate-200, .dark .text-slate-100 { color: var(--text-color) !important; }
+        .text-slate-500, .dark .text-slate-400 { color: var(--text-secondary) !important; }
+        .border-slate-200, .dark .border-border-dark { border-color: var(--border-color) !important; }
+        .bg-white, .dark .bg-panel-dark { background-color: var(--panel-color) !important; }
+        .bg-background-light, .dark .bg-background-dark { background-color: var(--bg-color) !important; }
+
+        .glass-panel {
+            background: var(--panel-color);
+            opacity: 0.95;
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            transition: background 0.5s ease, border-color 0.5s ease;
+        }
+        .dark .glass-panel {
+            background: var(--panel-color);
+            opacity: 0.95;
+            border: 1px solid var(--border-color);
+        }
+        .glow-border:focus-within {
+            box-shadow: 0 0 15px var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        aside, main, nav, div, button, a, span, input, textarea {
+            transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
+        }
+        .status-neon-build { box-shadow: 0 0 8px rgba(59, 130, 246, 0.5); }
+        .dark .status-neon-build { box-shadow: 0 0 8px rgba(96, 165, 250, 0.6); }
+        .status-neon-done { box-shadow: 0 0 8px rgba(34, 197, 94, 0.5); }
+        .status-neon-crash { box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #27272A; }
+        ::-webkit-scrollbar-thumb:hover { background: #CBD5E1; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #3F3F46; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .tabs-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+        .tabs-container::-webkit-scrollbar {
+            height: 4px;
+        }
+        .tabs-container > * {
+            flex-shrink: 0;
+        }
+        .tabs-container-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+        .tabs-indicator-right {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(to right, transparent, var(--panel-color));
+            pointer-events: none;
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+        .tabs-indicator-left {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(to left, transparent, var(--panel-color));
+            pointer-events: none;
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+    </style>
+    {{block "head" .}}{{end}}
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 h-screen h-[100dvh] flex overflow-hidden">
+    <aside class="w-20 flex flex-col items-center pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] border-r border-slate-200 dark:border-border-dark bg-white/80 dark:bg-panel-dark backdrop-blur-xl z-20">
+        <div class="mb-10">
+            <a href="/" class="w-12 h-12 border border-slate-200 dark:border-border-dark rounded flex items-center justify-center">
+                <img src="/static/icons/icon-512.png" alt="Home" class="w-10 h-10 object-contain">
+            </a>
+        </div>
+        <nav class="w-full flex-1 flex flex-col gap-4">
+            <div class="w-full flex flex-col items-center">
+                <a href="/dashboard" class="w-16 py-2 rounded-lg transition-all flex flex-col items-center gap-1 {{if eq .CurrentPath "/dashboard"}}text-primary dark:text-primary-dark bg-primary/10{{else}}text-slate-500 hover:text-primary dark:hover:text-primary-dark{{end}}" title="Dashboard">
+                    <span class="material-symbols-outlined">space_dashboard</span>
+                    <span class="text-[8px] uppercase font-mono text-center">Dashboard</span>
+                </a>
+            </div>
+            <div class="w-full flex flex-col gap-4 border-t border-border-dark pt-4">
+                {{range listProjects}}
+                <div class="w-full group relative flex flex-col items-center project-item">
+                    <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary dark:bg-primary-dark rounded-r-full transition-all duration-300 {{if ne $.Project.Name .Name}}opacity-0 scale-y-0{{end}} active-indicator"></div>
+                    <button data-project-name="{{.Name}}" onclick="const el=this.closest('.project-item'); document.querySelectorAll('.project-item.show-actions, .user-item.show-actions').forEach(n=>{if(n!==el)n.classList.remove('show-actions')}); el.classList.toggle('show-actions')" class="w-16 py-2 rounded-lg text-slate-500 hover:text-primary dark:hover:text-primary-dark transition-all flex flex-col items-center gap-1 {{if eq $.Project.Name .Name}}text-primary dark:text-primary-dark bg-primary/10 active-project{{end}}" title="{{.Name}}{{if .Paused}} (PAUSED){{end}}">
+                        <div class="relative">
+                            <span class="material-symbols-outlined transition-opacity">folder</span>
+                            {{if .Paused}}
+                            <div class="absolute -right-1 -top-1 w-2.5 h-2.5 rounded-full bg-amber-500 border-2 border-white dark:border-panel-dark animate-pulse"></div>
+                            {{end}}
+                        </div>
+                        <span class="text-[8px] uppercase font-mono text-center truncate w-12">{{.Name}}</span>
+                    </button>
+                      <div class="absolute left-full top-1/2 -translate-y-1/2 ml-2 flex items-center gap-1 opacity-0 group-[.show-actions]:opacity-100 invisible group-[.show-actions]:visible transition-all duration-300 z-30">
+                         <a href="/projects/{{.Name}}/jobs" class="p-2 text-slate-400 hover:text-primary dark:hover:text-primary-dark transition-colors bg-white/90 dark:bg-slate-900/90 rounded-lg shadow-lg border border-slate-200 dark:border-border-dark flex flex-col items-center justify-center gap-1 min-w-[56px]" title="Build">
+                            <span class="material-symbols-outlined text-[24px]">construction</span>
+                            <span class="text-[9px] uppercase font-mono font-bold">build</span>
+                         </a>
+                         <a href="/projects/{{.Name}}/chat" class="p-2 text-slate-400 hover:text-primary dark:hover:text-primary-dark transition-colors bg-white/90 dark:bg-slate-900/90 rounded-lg shadow-lg border border-slate-200 dark:border-border-dark flex flex-col items-center justify-center gap-1 min-w-[56px]" title="Chat">
+                            <span class="material-symbols-outlined text-[24px]">chat</span>
+                            <span class="text-[9px] uppercase font-mono font-bold">chat</span>
+                         </a>
+                         <a href="/projects/{{.Name}}/todos" class="p-2 text-slate-400 hover:text-primary dark:hover:text-primary-dark transition-colors bg-white/90 dark:bg-slate-900/90 rounded-lg shadow-lg border border-slate-200 dark:border-border-dark flex flex-col items-center justify-center gap-1 min-w-[56px]" title="Todos">
+                            <span class="material-symbols-outlined text-[24px]">checklist</span>
+                            <span class="text-[9px] uppercase font-mono font-bold">todo</span>
+                         </a>
+                         <button class="p-2 text-slate-400 hover:text-primary dark:hover:text-primary-dark transition-colors bg-white/90 dark:bg-slate-900/90 rounded-lg shadow-lg border border-slate-200 dark:border-border-dark flex flex-col items-center justify-center gap-1 min-w-[56px]" title="Config" onclick="editProject('{{.Name}}')">
+                            <span class="material-symbols-outlined text-[24px]">settings</span>
+                            <span class="text-[9px] uppercase font-mono font-bold">config</span>
+                         </button>
+                         <button class="p-2 text-red-500 hover:text-red-600 transition-colors bg-white/90 dark:bg-slate-900/90 rounded-lg shadow-lg border border-slate-200 dark:border-border-dark flex flex-col items-center justify-center gap-1 min-w-[56px]" title="Delete" onclick="deleteProject('{{.Name}}')">
+                            <span class="material-symbols-outlined text-[24px]">delete</span>
+                            <span class="text-[9px] uppercase font-mono font-bold">delete</span>
+                         </button>
+                    </div>
+                </div>
+                {{end}}
+            </div>
+            <button onclick="showCreateProjectModal()" class="text-slate-400 hover:text-primary dark:hover:text-primary-dark transition-colors flex flex-col items-center" title="New Project">
+                <span class="material-symbols-outlined">add_box</span>
+            </button>
+        </nav>
+        <div class="mt-auto w-full flex flex-col items-center gap-6">
+            <a href="/help" class="text-slate-400 hover:text-primary dark:hover:text-primary-dark transition-colors" title="Help & Documentation">
+                <span class="material-symbols-outlined">help</span>
+            </a>
+            <button id="pwa-install-btn" class="hidden text-slate-400 hover:text-primary transition-colors" title="Install App">
+                <span class="material-symbols-outlined">download</span>
+            </button>
+            <div class="group relative flex flex-col items-center user-item">
+                <button onclick="const el=this.closest('.user-item'); document.querySelectorAll('.user-item.show-actions, .project-item.show-actions').forEach(n=>{if(n!==el)n.classList.remove('show-actions')}); el.classList.toggle('show-actions')" class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-border-dark overflow-hidden transition-all hover:border-primary/50 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-slate-500">person</span>
+                </button>
+                <div class="absolute left-full top-1/2 -translate-y-1/2 ml-2 flex items-center gap-1 opacity-0 group-[.show-actions]:opacity-100 invisible group-[.show-actions]:visible transition-all duration-300 z-30">
+                     <button onclick="showThemeModal()" class="p-2 text-slate-400 hover:text-primary dark:hover:text-primary-dark transition-colors bg-white/90 dark:bg-slate-900/90 rounded-lg shadow-lg border border-slate-200 dark:border-border-dark flex flex-col items-center justify-center gap-1 min-w-[56px]" title="Change Color Scheme">
+                        <span class="material-symbols-outlined text-[24px]">palette</span>
+                        <span class="text-[9px] uppercase font-mono font-bold">theme</span>
+                     </button>
+                     <a href="/settings" class="p-2 text-slate-400 hover:text-primary dark:hover:text-primary-dark transition-colors bg-white/90 dark:bg-slate-900/90 rounded-lg shadow-lg border border-slate-200 dark:border-border-dark flex flex-col items-center justify-center gap-1 min-w-[56px]" title="Settings">
+                        <span class="material-symbols-outlined text-[24px]">settings</span>
+                        <span class="text-[9px] uppercase font-mono font-bold">settings</span>
+                     </a>
+                </div>
+            </div>
+            <span class="text-[10px] font-mono text-slate-500 mb-4">{{getBuildNumber}}</span>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative overflow-hidden">
+        {{block "background" .}}{{end}}
+        <div id="toast-container" class="absolute top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-md px-4 pointer-events-none"></div>
+        <div id="main-content" class="flex-1 overflow-y-auto p-2 md:px-2 md:py-8 min-h-0">
+            {{block "content" .}}
+                <div class="flex flex-col items-center justify-center h-full text-slate-400 space-y-6">
+                    <div class="w-24 h-24 bg-slate-100/50 dark:bg-slate-900/50 rounded-full flex items-center justify-center border border-slate-200 dark:border-border-dark">
+                        <span class="material-symbols-outlined text-4xl text-slate-700">construction</span>
+                    </div>
+                    <div class="text-center">
+                        <h2 class="text-2xl font-display font-bold text-slate-900 dark:text-slate-200">Welcome to OVERDRIVE</h2>
+                        <p class="text-slate-500 mt-2">Select a project from the sidebar or create a new one to get started.</p>
+                    </div>
+                    <button class="bg-primary dark:bg-primary-dark hover:bg-primary/90 dark:hover:bg-primary-dark/90 text-black px-8 py-3 rounded font-semibold text-sm transition-all flex items-center gap-2" onclick="showCreateProjectModal()">
+                        CREATE NEW PROJECT <span class="material-symbols-outlined text-sm">add</span>
+                    </button>
+                </div>
+            {{end}}
+        </div>
+    </main>
+
+    <!-- Theme Selection Modal -->
+    <div id="themeModal" class="modal">
+        <div class="glass-panel p-8 rounded-lg border border-slate-200 dark:border-border-dark w-[600px] max-w-[90%] space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-display font-bold">Choose Color Scheme</h2>
+                <button onclick="hideThemeModal()" class="text-slate-400 hover:text-slate-100 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto p-2" id="theme-list">
+                <!-- Themes will be injected here via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Theme Modal -->
+    <div id="customThemeModal" class="modal">
+        <div class="glass-panel p-8 rounded-lg border border-slate-200 dark:border-border-dark w-[500px] max-w-[90%] space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-display font-bold">Custom Color Scheme</h2>
+                <button onclick="hideCustomThemeModal()" class="text-slate-400 hover:text-slate-100 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Background</label>
+                        <input type="color" id="custom-bg-input" class="w-full h-10 rounded border-none p-0 cursor-pointer">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Panel</label>
+                        <input type="color" id="custom-panel-input" class="w-full h-10 rounded border-none p-0 cursor-pointer">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Border</label>
+                        <input type="color" id="custom-border-input" class="w-full h-10 rounded border-none p-0 cursor-pointer">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Primary</label>
+                        <input type="color" id="custom-primary-input" class="w-full h-10 rounded border-none p-0 cursor-pointer">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Text</label>
+                        <input type="color" id="custom-text-input" class="w-full h-10 rounded border-none p-0 cursor-pointer">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Text Secondary</label>
+                        <input type="color" id="custom-text-secondary-input" class="w-full h-10 rounded border-none p-0 cursor-pointer">
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="custom-is-dark-input" class="rounded border-slate-200 dark:border-border-dark bg-slate-100/50 dark:bg-slate-900/50 text-primary focus:ring-primary/30">
+                    <label for="custom-is-dark-input" class="text-sm text-slate-500">Is Dark Theme?</label>
+                </div>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" class="px-6 py-2 rounded text-slate-400 hover:text-slate-100 transition-colors text-sm font-semibold" onclick="hideCustomThemeModal()">CANCEL</button>
+                    <button type="button" onclick="saveCustomTheme()" class="bg-primary dark:bg-primary-dark hover:bg-primary/90 dark:hover:bg-primary-dark/90 text-black px-6 py-2 rounded font-semibold text-sm transition-all">APPLY CUSTOM THEME</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Modal (Create/Edit) -->
+    <div id="createProjectModal" class="modal">
+        <div class="glass-panel p-8 rounded-lg border border-slate-200 dark:border-border-dark w-[1000px] max-w-[90%] space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 id="modalTitle" class="text-xl font-display font-bold">Create New Project</h2>
+                <button onclick="hideCreateProjectModal()" class="text-slate-400 hover:text-slate-100 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+             <div class="tabs-container-wrapper">
+                <div class="tabs-indicator-left" style="opacity: 0;"></div>
+                <div class="tabs-indicator-right" style="opacity: 0;"></div>
+                <div class="flex border-b border-slate-200 dark:border-border-dark tabs-container">
+                    <button type="button" onclick="showProjectTab('code')" id="project-tab-code" class="px-6 py-2 text-xs font-mono font-bold uppercase tracking-widest border-b-2 border-primary text-primary transition-all">CODE</button>
+                    <button type="button" onclick="showProjectTab('ai')" id="project-tab-ai" class="px-6 py-2 text-xs font-mono font-bold uppercase tracking-widest border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-all">AI</button>
+                    <button type="button" onclick="showProjectTab('deps')" id="project-tab-deps" class="px-6 py-2 text-xs font-mono font-bold uppercase tracking-widest border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-all">DEPS</button>
+                    <button type="button" onclick="showProjectTab('cmds')" id="project-tab-cmds" class="px-6 py-2 text-xs font-mono font-bold uppercase tracking-widest border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-all">CMDS</button>
+                    <button type="button" onclick="showProjectTab('env_vars')" id="project-tab-env_vars" class="px-6 py-2 text-xs font-mono font-bold uppercase tracking-widest border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-all">ENV</button>
+                    <button type="button" onclick="showProjectTab('feat')" id="project-tab-feat" class="px-6 py-2 text-xs font-mono font-bold uppercase tracking-widest border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-all">FEAT</button>
+                </div>
+            </div>
+
+
+            <form id="createProjectForm" class="space-y-4">
+                <div class="min-h-[520px]">
+                    <div id="project-tab-content-code" class="space-y-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Repo URL (Git SSH URL)</label>
+                        <input type="text" id="p_repo_url" name="repo_url" required class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30 dark:focus:ring-primary-dark/30 focus:border-primary/50 dark:focus:border-primary-dark/50" placeholder="git@github.com:user/repo.git">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Project Name (optional)</label>
+                        <input type="text" id="p_name" name="name" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30 dark:focus:ring-primary-dark/30 focus:border-primary/50 dark:focus:border-primary-dark/50" placeholder="Derived from URL if empty">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Primary Branch</label>
+                        <input type="text" id="p_branch" name="primary_branch" required class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30 dark:focus:ring-primary-dark/30 focus:border-primary/50 dark:focus:border-primary-dark/50" placeholder="main">
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center">
+                            <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">SSH Key</label>
+                            <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono text-primary dark:text-primary-dark hover:underline flex items-center gap-1 uppercase tracking-widest">
+                                GitHub Setup Guide
+                                <span class="material-symbols-outlined !text-[10px]">open_in_new</span>
+                            </a>
+                        </div>
+                        <textarea id="p_ssh_key" name="ssh_key" required class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-xs py-2 px-3 text-slate-900 dark:text-slate-200 font-mono h-32 focus:ring-primary/30 dark:focus:ring-primary-dark/30 focus:border-primary/50 dark:focus:border-primary-dark/50" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"></textarea>
+                    </div>
+                </div>
+
+                <div id="project-tab-content-ai" class="space-y-4 hidden">
+                    <!-- Build Harness -->
+                    <div class="space-y-2 p-4 bg-slate-100/30 dark:bg-slate-900/30 rounded-lg border border-slate-200 dark:border-border-dark">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest block mb-2">Build Harness</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-mono text-slate-400 uppercase">Harness Provider</label>
+                                <select id="p_build_harness_provider" name="build_harness_provider" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-1.5 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                                    <option value="claude-code">Claude Code</option>
+                                    <option value="codex-cli">Codex CLI</option>
+                                    <option value="cursor-cli">Cursor CLI</option>
+                                    <option value="gemini-cli">Gemini CLI</option>
+                                    <option value="github-cli">GitHub CLI</option>
+                                    <option value="opencode">OpenCode</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-mono text-slate-400 uppercase">LLM Provider</label>
+                                <select id="p_build_llm_provider" name="build_llm_provider" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-1.5 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                                    <option value="anthropic">Anthropic</option>
+                                    <option value="anysphere">Anysphere</option>
+                                    <option value="google-gemini">Google Gemini</option>
+                                    <option value="openai">OpenAI</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-mono text-slate-400 uppercase tracking-widest">BUILD MODEL</label>
+                                <div class="relative group">
+                                    <input type="text" id="p_build_model" name="build_model" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 pr-8 text-slate-900 dark:text-slate-200 focus:ring-primary/30 dark:focus:ring-primary-dark/30 focus:border-primary/50 dark:focus:border-primary-dark/50" placeholder="e.g. google/gemini-3-flash-preview">
+                                    <button type="button" onclick="document.getElementById('p_build_model').value = ''; triggerAutoSave()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">close</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-mono text-slate-400 uppercase tracking-widest">API KEY (OR $ENV_VAR)</label>
+                                <div class="relative group">
+                                    <input type="password" id="p_build_llm_api_key" name="build_llm_api_key" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 pr-8 text-slate-900 dark:text-slate-200 focus:ring-primary/30 dark:focus:ring-primary-dark/30 focus:border-primary/50 dark:focus:border-primary-dark/50">
+                                    <button type="button" onclick="togglePassword('p_build_llm_api_key', 'p_build_llm_api_key_icon')" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center transition-colors">
+                                        <span id="p_build_llm_api_key_icon" class="material-symbols-outlined text-[18px]">visibility</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Harness -->
+                    <div class="space-y-2 p-4 bg-slate-100/30 dark:bg-slate-900/30 rounded-lg border border-slate-200 dark:border-border-dark">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest block mb-2">Chat Harness</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-mono text-slate-400 uppercase">Harness Provider</label>
+                                <select id="p_chat_harness_provider" name="chat_harness_provider" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-1.5 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                                    <option value="claude-code">Claude Code</option>
+                                    <option value="codex-cli">Codex CLI</option>
+                                    <option value="cursor-cli">Cursor CLI</option>
+                                    <option value="gemini-cli">Gemini CLI</option>
+                                    <option value="github-cli">GitHub CLI</option>
+                                    <option value="opencode">OpenCode</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-mono text-slate-400 uppercase">LLM Provider</label>
+                                <select id="p_chat_llm_provider" name="chat_llm_provider" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-1.5 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                                    <option value="anthropic">Anthropic</option>
+                                    <option value="anysphere">Anysphere</option>
+                                    <option value="google-gemini">Google Gemini</option>
+                                    <option value="openai">OpenAI</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-mono text-slate-400 uppercase tracking-widest">CHAT MODEL</label>
+                                <div class="relative group">
+                                    <input type="text" id="p_chat_model" name="chat_model" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 pr-8 text-slate-900 dark:text-slate-200 focus:ring-primary/30 dark:focus:ring-primary-dark/30 focus:border-primary/50 dark:focus:border-primary-dark/50" placeholder="e.g. google/gemini-3-flash-preview">
+                                    <button type="button" onclick="document.getElementById('p_chat_model').value = ''; triggerAutoSave()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">close</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-mono text-slate-400 uppercase tracking-widest">API KEY (OR $ENV_VAR)</label>
+                                <div class="relative group">
+                                    <input type="password" id="p_chat_llm_api_key" name="chat_llm_api_key" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 pr-8 text-slate-900 dark:text-slate-200 focus:ring-primary/30 dark:focus:ring-primary-dark/30 focus:border-primary/50 dark:focus:border-primary-dark/50">
+                                    <button type="button" onclick="togglePassword('p_chat_llm_api_key', 'p_chat_llm_api_key_icon')" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center transition-colors">
+                                        <span id="p_chat_llm_api_key_icon" class="material-symbols-outlined text-[18px]">visibility</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="project-tab-content-deps" class="space-y-4 hidden">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Alpine Linux Deps (one per line)</label>
+                        <textarea id="p_dependencies" name="dependencies" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-xs py-2 px-3 text-slate-900 dark:text-slate-200 font-mono h-64 focus:ring-primary/30 dark:focus:ring-primary-dark/30 focus:border-primary/50 dark:focus:border-primary-dark/50" placeholder="Add one alpine linux dep per line."></textarea>
+                    </div>
+                </div>
+
+                <div id="project-tab-content-cmds" class="space-y-4 hidden">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Custom Build Commands</label>
+                        <div id="cmds_container" class="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                            <!-- Cmds will be injected here -->
+                        </div>
+                        <button type="button" onclick="addCmdRow()" class="mt-4 text-[10px] font-mono text-primary dark:text-primary-dark hover:underline flex items-center gap-1 uppercase tracking-widest">
+                            <span class="material-symbols-outlined !text-[14px]">add_circle</span>
+                            Add Command
+                        </button>
+                    </div>
+                </div>
+
+                <div id="project-tab-content-env_vars" class="space-y-4 hidden">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Environment Variables</label>
+                        <div id="env_vars_container" class="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                            <!-- Env vars will be injected here -->
+                        </div>
+                        <button type="button" onclick="addEnvVarRow()" class="mt-4 text-[10px] font-mono text-primary dark:text-primary-dark hover:underline flex items-center gap-1 uppercase tracking-widest">
+                            <span class="material-symbols-outlined !text-[14px]">add_circle</span>
+                            Add Variable
+                        </button>
+                    </div>
+                </div>
+
+                <div id="project-tab-content-feat" class="space-y-4 hidden">
+                    <div class="space-y-4">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Todo Experience</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="relative flex items-center p-4 border rounded-lg cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 border-primary bg-primary/5" id="p-provider-label-native">
+                                <input type="radio" name="p_todo_provider" value="native" checked class="sr-only" onchange="updateProjectProviderStyles()">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-primary">checklist</span>
+                                    <div>
+                                        <div class="font-bold text-slate-900 dark:text-slate-200 text-sm">Native Todos</div>
+                                        <div class="text-[10px] text-slate-500">Simple, built-in task management</div>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="relative flex items-center p-4 border rounded-lg cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 border-slate-200 dark:border-slate-700" id="p-provider-label-jira">
+                                <input type="radio" name="p_todo_provider" value="jira" class="sr-only" onchange="updateProjectProviderStyles()">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-blue-500">jira</span>
+                                    <div>
+                                        <div class="font-bold text-slate-900 dark:text-slate-200 text-sm">Jira Integration</div>
+                                        <div class="text-[10px] text-slate-500">Sync with Jira project issues</div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="p-jira-settings-container" class="hidden pt-4 border-t border-slate-200 dark:border-border-dark space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Jira Instance URL</label>
+                                <input type="text" id="p_jira_instance" placeholder="https://yourcompany.atlassian.net" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Project Key</label>
+                                <input type="text" id="p_jira_project_key" placeholder="PROJ" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Account Email</label>
+                                <input type="email" id="p_jira_email" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">API Token (or $ENV_VAR)</label>
+                                <div class="relative group">
+                                    <input type="password" id="p_jira_api_token" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 pr-8 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                                    <button type="button" onclick="togglePassword('p_jira_api_token', 'p_jira_api_token_icon')" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center transition-colors">
+                                        <span id="p_jira_api_token_icon" class="material-symbols-outlined text-[18px]">visibility</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Status: Pick up</label>
+                                <input type="text" id="p_jira_status_pickup" placeholder="In Progress" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Status: Done</label>
+                                <input type="text" id="p_jira_status_done" placeholder="Done" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-border-dark">
+                    <button type="submit" id="projectSubmitBtn" class="bg-primary dark:bg-primary-dark hover:bg-primary/90 dark:hover:bg-primary-dark/90 text-black px-6 py-2 rounded font-semibold text-sm transition-all flex items-center gap-2 min-w-[140px] justify-center">
+                        <span id="projectSubmitBtnIcon" class="hidden material-symbols-outlined text-[18px] animate-spin">sync</span>
+                        <span id="projectSubmitBtnText">CREATE PROJECT</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Project Modal -->
+    <div id="deleteProjectModal" class="modal">
+        <div class="glass-panel p-8 rounded-lg border border-slate-200 dark:border-border-dark w-[500px] max-w-[90%] space-y-6">
+            <h2 class="text-xl font-display font-bold text-red-500">Delete Project</h2>
+            <div class="space-y-4">
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                    This action <span class="font-bold">cannot</span> be undone. This will permanently delete the project <span id="deleteProjectNameDisplay" class="font-bold text-slate-900 dark:text-slate-200"></span>, all its jobs, logs, and associated data.
+                </p>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest flex flex-wrap items-center gap-1.5">Type <span id="deleteConfirmText" class="font-bold select-none px-2 py-0.5 rounded border border-amber-500 text-amber-500 bg-amber-500/5 normal-case"></span> to confirm</label>
+                    <input type="text" id="deleteProjectConfirmInput" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-red-500/30 focus:border-red-500/50" placeholder="Type the confirmation text here">
+                </div>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" class="px-6 py-2 rounded text-slate-400 hover:text-slate-100 transition-colors text-sm font-semibold" onclick="hideDeleteProjectModal()">CANCEL</button>
+                    <button type="button" id="confirmDeleteBtn" disabled class="bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded font-semibold text-sm transition-all">DELETE PROJECT</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTabIndicators() {
+            document.querySelectorAll('.tabs-container').forEach(container => {
+                const wrapper = container.parentElement;
+                if (!wrapper.classList.contains('tabs-container-wrapper')) return;
+                
+                const indicatorRight = wrapper.querySelector('.tabs-indicator-right');
+                const indicatorLeft = wrapper.querySelector('.tabs-indicator-left');
+                
+                if (indicatorRight) {
+                    const canScrollRight = container.scrollWidth > container.clientWidth + container.scrollLeft + 1;
+                    indicatorRight.style.opacity = canScrollRight ? '1' : '0';
+                }
+                
+                if (indicatorLeft) {
+                    const canScrollLeft = container.scrollLeft > 1;
+                    indicatorLeft.style.opacity = canScrollLeft ? '1' : '0';
+                }
+            });
+        }
+
+        window.addEventListener('load', () => {
+            updateTabIndicators();
+            document.querySelectorAll('.tabs-container').forEach(container => {
+                container.addEventListener('scroll', updateTabIndicators);
+            });
+        });
+
+        window.addEventListener('resize', updateTabIndicators);
+
+        let projectToDelete = '';
+
+        const themes = [
+            { id: 'dark', name: 'Standard Dark', colors: ['#0A0A0B', '#020203', '#00FF9D'], isDark: true },
+            { id: 'light', name: 'Standard Light', colors: ['#F8FAFC', '#FFFFFF', '#00A36C'], isDark: false },
+            { id: 'dracula', name: 'Dracula', colors: ['#282a36', '#44475a', '#bd93f9'], isDark: true },
+            { id: 'monokai', name: 'Monokai', colors: ['#272822', '#3e3d32', '#a6e22e'], isDark: true },
+            { id: 'nord', name: 'Nord', colors: ['#2e3440', '#3b4252', '#88c0d0'], isDark: true },
+            { id: 'solarized-dark', name: 'Solarized Dark', colors: ['#002b36', '#073642', '#268bd2'], isDark: true },
+            { id: 'gruvbox-dark', name: 'Gruvbox Dark', colors: ['#282828', '#3c3836', '#fabd2f'], isDark: true },
+            { id: 'one-dark', name: 'One Dark', colors: ['#282c34', '#21252b', '#61afef'], isDark: true },
+            { id: 'synthwave', name: 'Synthwave \'84', colors: ['#262335', '#241b2f', '#ff7edb'], isDark: true },
+            { id: 'cyberpunk', name: 'Cyberpunk', colors: ['#000b1e', '#001621', '#f0f600'], isDark: true },
+            { id: 'tokyo-night', name: 'Tokyo Night', colors: ['#1a1b26', '#24283b', '#7aa2f7'], isDark: true },
+            { id: 'custom', name: 'Custom', colors: ['#F8FAFC', '#FFFFFF', '#00A36C'], isDark: false },
+        ];
+
+        function applyTheme(themeId) {
+            let theme = themes.find(t => t.id === themeId) || themes[0];
+            
+            if (themeId === 'custom') {
+                const customColors = JSON.parse(localStorage.getItem('custom-theme-colors') || '{}');
+                const isDark = localStorage.getItem('custom-theme-is-dark') === 'true';
+                
+                document.documentElement.style.setProperty('--custom-bg', customColors['--bg-color'] || '#F8FAFC');
+                document.documentElement.style.setProperty('--custom-panel', customColors['--panel-color'] || '#FFFFFF');
+                document.documentElement.style.setProperty('--custom-border', customColors['--border-color'] || '#E2E8F0');
+                document.documentElement.style.setProperty('--custom-text', customColors['--text-color'] || '#0F172A');
+                document.documentElement.style.setProperty('--custom-text-secondary', customColors['--text-secondary'] || '#64748B');
+                document.documentElement.style.setProperty('--custom-primary', customColors['--primary-color'] || '#00A36C');
+                
+                theme = { ...theme, isDark };
+            }
+
+            document.documentElement.setAttribute('data-theme', theme.id);
+            if (theme.isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            localStorage.setItem('theme-id', theme.id);
+            
+            // Update theme-color meta tag
+            let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+            if (metaThemeColor) {
+                const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+                metaThemeColor.setAttribute('content', primaryColor);
+            }
+        }
+
+        function showThemeModal() {
+            const list = document.getElementById('theme-list');
+            list.innerHTML = '';
+            const activeThemeId = localStorage.getItem('theme-id') || 'dark';
+            
+            themes.forEach(theme => {
+                const isActive = theme.id === activeThemeId;
+                const btn = document.createElement('button');
+                btn.className = `flex items-center justify-between p-4 rounded-lg border ${isActive ? 'ring-2 ring-primary border-primary' : 'border-slate-200 dark:border-border-dark'} hover:border-primary transition-all text-left group`;
+                btn.onclick = () => {
+                    if (theme.id === 'custom') {
+                        showCustomThemeModal();
+                    } else {
+                        applyTheme(theme.id);
+                        hideThemeModal();
+                    }
+                };
+                
+                let swatches = theme.colors.map(c => `<div class="w-4 h-4 rounded-full border border-black/10" style="background-color: ${c}"></div>`).join('');
+                if (theme.id === 'custom') {
+                    const customColors = JSON.parse(localStorage.getItem('custom-theme-colors') || '{}');
+                    if (customColors['--bg-color']) {
+                        swatches = [
+                            customColors['--bg-color'],
+                            customColors['--panel-color'],
+                            customColors['--primary-color']
+                        ].map(c => `<div class="w-4 h-4 rounded-full border border-black/10" style="background-color: ${c}"></div>`).join('');
+                    }
+                }
+                
+                btn.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        ${isActive ? '<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>' : ''}
+                        <span class="font-medium group-hover:text-primary transition-colors">${theme.name}</span>
+                    </div>
+                    <div class="flex gap-1">${swatches}</div>
+                `;
+                list.appendChild(btn);
+            });
+            document.getElementById('themeModal').style.display = 'flex';
+        }
+
+        function hideThemeModal() {
+            document.getElementById('themeModal').style.display = 'none';
+        }
+
+        function showCustomThemeModal() {
+            hideThemeModal();
+            const customColors = JSON.parse(localStorage.getItem('custom-theme-colors') || '{}');
+            const isDark = localStorage.getItem('custom-theme-is-dark') === 'true';
+            
+            document.getElementById('custom-bg-input').value = customColors['--bg-color'] || '#F8FAFC';
+            document.getElementById('custom-panel-input').value = customColors['--panel-color'] || '#FFFFFF';
+            document.getElementById('custom-border-input').value = customColors['--border-color'] || '#E2E8F0';
+            document.getElementById('custom-primary-input').value = customColors['--primary-color'] || '#00A36C';
+            document.getElementById('custom-text-input').value = customColors['--text-color'] || '#0F172A';
+            document.getElementById('custom-text-secondary-input').value = customColors['--text-secondary'] || '#64748B';
+            document.getElementById('custom-is-dark-input').checked = isDark;
+            
+            document.getElementById('customThemeModal').style.display = 'flex';
+        }
+
+        function hideCustomThemeModal() {
+            document.getElementById('customThemeModal').style.display = 'none';
+        }
+
+        function saveCustomTheme() {
+            const colors = {
+                '--bg-color': document.getElementById('custom-bg-input').value,
+                '--panel-color': document.getElementById('custom-panel-input').value,
+                '--border-color': document.getElementById('custom-border-input').value,
+                '--primary-color': document.getElementById('custom-primary-input').value,
+                '--text-color': document.getElementById('custom-text-input').value,
+                '--text-secondary': document.getElementById('custom-text-secondary-input').value,
+            };
+            const isDark = document.getElementById('custom-is-dark-input').checked;
+            
+            localStorage.setItem('custom-theme-colors', JSON.stringify(colors));
+            localStorage.setItem('custom-theme-is-dark', isDark);
+            
+            applyTheme('custom');
+            hideCustomThemeModal();
+        }
+
+         function showProjectTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('[id^="project-tab-"]').forEach(btn => {
+                btn.classList.remove('border-primary', 'text-primary');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+
+            const activeBtn = document.getElementById('project-tab-' + tab);
+            activeBtn.classList.remove('border-transparent', 'text-slate-500');
+            activeBtn.classList.add('border-primary', 'text-primary');
+            activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+            // Update tab content
+            document.getElementById('project-tab-content-code').classList.add('hidden');
+            document.getElementById('project-tab-content-deps').classList.add('hidden');
+            document.getElementById('project-tab-content-cmds').classList.add('hidden');
+            document.getElementById('project-tab-content-env_vars').classList.add('hidden');
+            document.getElementById('project-tab-content-feat').classList.add('hidden');
+            document.getElementById('project-tab-content-ai').classList.add('hidden');
+            document.getElementById('project-tab-content-' + tab).classList.remove('hidden');
+        }
+
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerText = 'visibility_off';
+            } else {
+                input.type = 'password';
+                icon.innerText = 'visibility';
+            }
+        }
+
+        function updateProjectProviderStyles() {
+            const providers = ['native', 'jira'];
+            const selected = document.querySelector('input[name="p_todo_provider"]:checked').value;
+            
+            providers.forEach(p => {
+                const label = document.getElementById(`p-provider-label-${p}`);
+                if (p === selected) {
+                    label.classList.add('border-primary', 'bg-primary/5');
+                    label.classList.remove('border-slate-200', 'dark:border-slate-700');
+                } else {
+                    label.classList.remove('border-primary', 'bg-primary/5');
+                    label.classList.add('border-slate-200', 'dark:border-slate-700');
+                }
+            });
+
+            document.getElementById('p-jira-settings-container').classList.toggle('hidden', selected !== 'jira');
+        }
+
+        let autoSaveTimeout;
+        function triggerAutoSave() {
+            if (!document.getElementById('createProjectModal').style.display || 
+                document.getElementById('createProjectModal').style.display === 'none') return;
+            
+            // Only auto-save if form is valid
+            if (!document.getElementById('createProjectForm').checkValidity()) return;
+
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                const form = document.getElementById('createProjectForm');
+                // Use a custom property to indicate it's an auto-save
+                form._isAutoSave = true;
+                form.requestSubmit();
+            }, 1000);
+        }
+
+        function updateSubmitButtonStatus(state) {
+            const btn = document.getElementById('projectSubmitBtn');
+            const icon = document.getElementById('projectSubmitBtnIcon');
+            const text = document.getElementById('projectSubmitBtnText');
+            const mode = document.getElementById('p_name').readOnly ? 'SAVED' : 'CREATE PROJECT';
+
+            if (state === 'saving') {
+                icon.classList.remove('hidden');
+                text.innerText = 'SAVING...';
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
+            } else if (state === 'saved') {
+                icon.classList.add('hidden');
+                text.innerText = 'SAVED';
+                btn.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-primary', 'dark:bg-primary-dark');
+                btn.classList.add('bg-green-500', 'text-white');
+                setTimeout(() => {
+                    btn.classList.remove('bg-green-500', 'text-white');
+                    btn.classList.add('bg-primary', 'dark:bg-primary-dark');
+                    if (text.innerText === 'SAVED') text.innerText = mode;
+                }, 2000);
+            } else if (state === 'error') {
+                icon.classList.add('hidden');
+                text.innerText = 'ERROR';
+                btn.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-primary', 'dark:bg-primary-dark');
+                btn.classList.add('bg-red-500', 'text-white');
+                setTimeout(() => {
+                    btn.classList.remove('bg-red-500', 'text-white');
+                    btn.classList.add('bg-primary', 'dark:bg-primary-dark');
+                    if (text.innerText === 'ERROR') text.innerText = mode;
+                }, 2000);
+            } else {
+                icon.classList.add('hidden');
+                text.innerText = mode;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-green-500', 'bg-red-500', 'text-white');
+                btn.classList.add('bg-primary', 'dark:bg-primary-dark');
+            }
+        }
+
+        function addEnvVarRow(name = '', value = '') {
+            const container = document.getElementById('env_vars_container');
+            const row = document.createElement('div');
+            row.className = 'flex gap-2 env-var-row';
+            row.innerHTML = `
+                <input type="text" placeholder="NAME" value="${name}" class="env-name w-1/3 bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-xs py-2 px-3 text-slate-900 dark:text-slate-200 font-mono focus:ring-primary/30 focus:border-primary/50">
+                <input type="text" placeholder="VALUE" value="${value}" class="env-value flex-1 bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-xs py-2 px-3 text-slate-900 dark:text-slate-200 font-mono focus:ring-primary/30 focus:border-primary/50">
+                <button type="button" onclick="this.parentElement.remove(); triggerAutoSave()" class="text-slate-500 hover:text-red-500 flex items-center">
+                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                </button>
+            `;
+            container.appendChild(row);
+        }
+
+        function addCmdRow(label = '', cmd = '') {
+            const container = document.getElementById('cmds_container');
+            const row = document.createElement('div');
+            row.className = 'flex gap-2 cmd-row';
+            row.innerHTML = `
+                <input type="text" placeholder="LABEL (e.g. Build)" value="${label}" class="cmd-label w-1/3 bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-xs py-2 px-3 text-slate-900 dark:text-slate-200 font-mono focus:ring-primary/30 focus:border-primary/50">
+                <input type="text" placeholder="COMMAND (e.g. npm run build)" value="${cmd}" class="cmd-value flex-1 bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-xs py-2 px-3 text-slate-900 dark:text-slate-200 font-mono focus:ring-primary/30 focus:border-primary/50">
+                <button type="button" onclick="this.parentElement.remove(); triggerAutoSave()" class="text-slate-500 hover:text-red-500 flex items-center">
+                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                </button>
+            `;
+            container.appendChild(row);
+        }
+
+
+        function showCreateProjectModal() {
+            document.getElementById('modalTitle').innerText = 'Create New Project';
+            document.getElementById('p_name').readOnly = false;
+            updateSubmitButtonStatus('reset');
+            document.getElementById('createProjectForm').reset();
+            document.getElementById('env_vars_container').innerHTML = '';
+            document.getElementById('cmds_container').innerHTML = '';
+            document.getElementById('p_build_model').value = 'google/gemini-3-flash-preview';
+            document.getElementById('p_chat_model').value = 'google/gemini-3-flash-preview';
+            document.getElementById('p_build_llm_api_key').value = '';
+            document.getElementById('p_build_llm_api_key').type = 'password';
+            document.getElementById('p_build_llm_api_key_icon').innerText = 'visibility';
+            document.getElementById('p_chat_llm_api_key').value = '';
+            document.getElementById('p_chat_llm_api_key').type = 'password';
+            document.getElementById('p_chat_llm_api_key_icon').innerText = 'visibility';
+            document.getElementById('p_build_harness_provider').value = 'opencode';
+            document.getElementById('p_build_llm_provider').value = 'google-gemini';
+            document.getElementById('p_chat_harness_provider').value = 'opencode';
+            document.getElementById('p_chat_llm_provider').value = 'google-gemini';
+            
+            // Reset Feat tab
+            document.querySelector('input[name="p_todo_provider"][value="native"]').checked = true;
+            updateProjectProviderStyles();
+            document.getElementById('p_jira_instance').value = '';
+            document.getElementById('p_jira_project_key').value = '';
+            document.getElementById('p_jira_email').value = '';
+            document.getElementById('p_jira_api_token').value = '';
+            document.getElementById('p_jira_api_token').type = 'password';
+            document.getElementById('p_jira_api_token_icon').innerText = 'visibility';
+            document.getElementById('p_jira_status_pickup').value = 'In Progress';
+            document.getElementById('p_jira_status_done').value = 'Done';
+
+            showProjectTab('code');
+            document.getElementById('createProjectModal').style.display = 'flex';
+        }
+        function editProject(name) {
+            fetch('/projects/' + name + '/config')
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to fetch project config');
+                    return res.json();
+                })
+                .then(project => {
+                    document.getElementById('modalTitle').innerText = 'Edit Project: ' + project.name;
+                    document.getElementById('p_name').readOnly = true;
+                    updateSubmitButtonStatus('reset');
+                    document.getElementById('p_repo_url').value = project.repo_url || '';
+                    document.getElementById('p_name').value = project.name || '';
+                    document.getElementById('p_branch').value = project.primary_branch || '';
+                    document.getElementById('p_build_model').value = project.build_model || 'google/gemini-3-flash-preview';
+                    document.getElementById('p_chat_model').value = project.chat_model || 'google/gemini-3-flash-preview';
+                    
+                    document.getElementById('p_build_llm_api_key').type = 'password';
+                    document.getElementById('p_build_llm_api_key_icon').innerText = 'visibility';
+                    document.getElementById('p_chat_llm_api_key').type = 'password';
+                    document.getElementById('p_chat_llm_api_key_icon').innerText = 'visibility';
+                    document.getElementById('p_jira_api_token').type = 'password';
+                    document.getElementById('p_jira_api_token_icon').innerText = 'visibility';
+                    
+                    if (project.build) {
+                        if (project.build.harness) document.getElementById('p_build_harness_provider').value = project.build.harness.provider || 'opencode';
+                        if (project.build.llm) {
+                            document.getElementById('p_build_llm_provider').value = project.build.llm.provider || 'google-gemini';
+                            if (project.build.llm.model) document.getElementById('p_build_model').value = project.build.llm.model;
+                            document.getElementById('p_build_llm_api_key').value = project.build.llm.api_key || '';
+                        }
+                    }
+                    if (project.chat) {
+                        if (project.chat.harness) document.getElementById('p_chat_harness_provider').value = project.chat.harness.provider || 'opencode';
+                        if (project.chat.llm) {
+                            document.getElementById('p_chat_llm_provider').value = project.chat.llm.provider || 'google-gemini';
+                            if (project.chat.llm.model) document.getElementById('p_chat_model').value = project.chat.llm.model;
+                            document.getElementById('p_chat_llm_api_key').value = project.chat.llm.api_key || '';
+                        }
+                    }
+
+                    document.getElementById('p_ssh_key').value = project.ssh_key || '';
+                    document.getElementById('p_dependencies').value = project.dependencies || '';
+
+                    // Cmds
+                    const cmdsContainer = document.getElementById('cmds_container');
+                    cmdsContainer.innerHTML = '';
+                    if (project.cmds && Array.isArray(project.cmds)) {
+                        project.cmds.forEach(c => {
+                            addCmdRow(c.label, c.cmd);
+                        });
+                    }
+
+                    // Env Vars
+                    const container = document.getElementById('env_vars_container');
+                    container.innerHTML = '';
+                    if (project.env_vars) {
+                        // Alphabetize keys
+                        const sortedKeys = Object.keys(project.env_vars).sort();
+                        sortedKeys.forEach(key => {
+                            addEnvVarRow(key, project.env_vars[key]);
+                        });
+                    }
+
+                    // Feat Tab
+                    const provider = project.todo_provider || 'native';
+                    document.querySelector(`input[name="p_todo_provider"][value="${provider}"]`).checked = true;
+                    updateProjectProviderStyles();
+                    if (project.jira) {
+                        document.getElementById('p_jira_instance').value = project.jira.instance || '';
+                        document.getElementById('p_jira_project_key').value = project.jira.project_key || '';
+                        document.getElementById('p_jira_email').value = project.jira.email || '';
+                        document.getElementById('p_jira_api_token').value = project.jira.api_token || '';
+                        document.getElementById('p_jira_status_pickup').value = project.jira.status_pickup || 'In Progress';
+                        document.getElementById('p_jira_status_done').value = project.jira.status_done || 'Done';
+                    }
+
+                    showProjectTab('code');
+                    document.getElementById('createProjectModal').style.display = 'flex';
+                })
+                .catch(err => {
+                    showToast(err.message, 'error');
+                });
+        }
+        function hideCreateProjectModal() {
+            document.getElementById('createProjectModal').style.display = 'none';
+        }
+        document.getElementById('createProjectForm').onsubmit = function(e) {
+            e.preventDefault();
+            const isAutoSave = this._isAutoSave;
+            delete this._isAutoSave;
+
+            updateSubmitButtonStatus('saving');
+            
+            const envVars = {};
+            document.querySelectorAll('.env-var-row').forEach(row => {
+                const name = row.querySelector('.env-name').value.trim();
+                const value = row.querySelector('.env-value').value.trim();
+                if (name) {
+                    envVars[name] = value;
+                }
+            });
+
+            const cmds = [];
+            document.querySelectorAll('.cmd-row').forEach(row => {
+                const label = row.querySelector('.cmd-label').value.trim();
+                const cmd = row.querySelector('.cmd-value').value.trim();
+                if (label || cmd) {
+                    cmds.push({ label, cmd });
+                }
+            });
+
+            const selectedProvider = document.querySelector('input[name="p_todo_provider"]:checked').value;
+            const data = {
+                repo_url: document.getElementById('p_repo_url').value,
+                name: document.getElementById('p_name').value,
+                primary_branch: document.getElementById('p_branch').value,
+                build_model: document.getElementById('p_build_model').value,
+                chat_model: document.getElementById('p_chat_model').value,
+                build: {
+                    harness: { provider: document.getElementById('p_build_harness_provider').value },
+                    llm: { 
+                        provider: document.getElementById('p_build_llm_provider').value,
+                        model: document.getElementById('p_build_model').value,
+                        api_key: document.getElementById('p_build_llm_api_key').value
+                    }
+                },
+                chat: {
+                    harness: { provider: document.getElementById('p_chat_harness_provider').value },
+                    llm: { 
+                        provider: document.getElementById('p_chat_llm_provider').value,
+                        model: document.getElementById('p_chat_model').value,
+                        api_key: document.getElementById('p_chat_llm_api_key').value
+                    }
+                },
+                ssh_key: document.getElementById('p_ssh_key').value,
+                dependencies: document.getElementById('p_dependencies').value,
+                cmds: cmds,
+                env_vars: envVars,
+                todo_provider: selectedProvider,
+                jira: {
+                    enabled: selectedProvider === 'jira',
+                    instance: document.getElementById('p_jira_instance').value,
+                    project_key: document.getElementById('p_jira_project_key').value,
+                    email: document.getElementById('p_jira_email').value,
+                    api_token: document.getElementById('p_jira_api_token').value,
+                    status_pickup: document.getElementById('p_jira_status_pickup').value,
+                    status_done: document.getElementById('p_jira_status_done').value
+                }
+            };
+            fetch('/projects', {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: { 'Content-Type': 'application/json' }
+            }).then(res => {
+                if (res.ok) {
+                    updateSubmitButtonStatus('saved');
+                    res.json().then(project => {
+                        const isEdit = document.getElementById('p_name').readOnly;
+                        if (isEdit) {
+                            if (!isAutoSave) {
+                                // If manually clicked, maybe still show toast but don't reload unless necessary
+                                showToast('Project updated successfully', 'success');
+                            }
+                        } else {
+                            // If it was a Create, we probably want to redirect
+                            location.href = '/projects/' + project.name + '/jobs';
+                        }
+                    });
+                } else {
+                    updateSubmitButtonStatus('error');
+                    res.text().then(err => showToast('Failed to save project: ' + err, 'error'));
+                }
+            }).catch(err => {
+                updateSubmitButtonStatus('error');
+                showToast('Failed to save project: ' + err.message, 'error');
+            });
+        };
+
+        document.getElementById('createProjectForm').addEventListener('input', triggerAutoSave);
+        document.getElementById('createProjectForm').addEventListener('change', triggerAutoSave);
+
+
+        function deleteProject(name) {
+            projectToDelete = name;
+            const confirmText = 'delete ' + name;
+            document.getElementById('deleteProjectNameDisplay').innerText = name;
+            document.getElementById('deleteConfirmText').innerText = confirmText;
+            document.getElementById('deleteProjectConfirmInput').value = '';
+            document.getElementById('confirmDeleteBtn').disabled = true;
+            document.getElementById('deleteProjectModal').style.display = 'flex';
+            document.getElementById('deleteProjectConfirmInput').focus();
+        }
+
+        function hideDeleteProjectModal() {
+            document.getElementById('deleteProjectModal').style.display = 'none';
+            projectToDelete = '';
+        }
+
+        document.getElementById('deleteProjectConfirmInput').oninput = function(e) {
+            const expected = 'delete ' + projectToDelete;
+            document.getElementById('confirmDeleteBtn').disabled = e.target.value !== expected;
+        };
+
+        document.getElementById('deleteProjectConfirmInput').onkeydown = function(e) {
+            if (e.key === 'Enter' && !document.getElementById('confirmDeleteBtn').disabled) {
+                document.getElementById('confirmDeleteBtn').click();
+            }
+        };
+
+        document.getElementById('confirmDeleteBtn').onclick = function() {
+            if (!projectToDelete) return;
+            
+            fetch('/projects/' + projectToDelete, { method: 'DELETE' }).then(res => {
+                if (res.ok) {
+                    showToast('Project deleted successfully', 'success');
+                    setTimeout(() => {
+                        if (location.pathname.includes('/projects/' + projectToDelete)) {
+                            location.href = '/';
+                        } else {
+                            location.reload();
+                        }
+                    }, 1000);
+                }
+                else showToast('Failed to delete project', 'error');
+            });
+        };
+
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalIcon = btn.innerHTML;
+                btn.innerHTML = 'check';
+                btn.classList.add('text-green-500');
+                setTimeout(() => {
+                    btn.innerHTML = originalIcon;
+                    btn.classList.remove('text-green-500');
+                }, 2000);
+            });
+        }
+
+        // PWA Support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW registered:', reg))
+                    .catch(err => console.error('SW registration failed:', err));
+            });
+        }
+
+        let deferredPrompt;
+        const installBtn = document.getElementById('pwa-install-btn');
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+
+        // Show install button on mobile if not already installed
+        if (isMobile && !isStandalone) {
+            installBtn.classList.remove('hidden');
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.classList.remove('hidden');
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('User accepted the A2HS prompt');
+                }
+                deferredPrompt = null;
+                installBtn.classList.add('hidden');
+            } else if (isMobile) {
+                showToast('To install: Tap the share icon and select "Add to Home Screen"', 'info');
+            }
+        });
+
+        // Mobile Long-press for project actions
+        let touchTimer;
+        let isLongPress = false;
+
+        function handleTouchStart(e, el) {
+            clearTimeout(touchTimer);
+            isLongPress = false;
+            if (e.target.closest('button')) return;
+            
+            touchTimer = setTimeout(() => {
+                isLongPress = true;
+                document.querySelectorAll('.project-item.show-actions, .user-item.show-actions').forEach(node => {
+                    if (node !== el) node.classList.remove('show-actions');
+                });
+                el.classList.toggle('show-actions');
+                if (window.navigator.vibrate) window.navigator.vibrate(50);
+            }, 500);
+        }
+
+        function handleTouchEnd(e) {
+            clearTimeout(touchTimer);
+            if (isLongPress) {
+                e.preventDefault();
+                isLongPress = false;
+            }
+        }
+
+        function handleTouchMove(e) {
+            clearTimeout(touchTimer);
+            isLongPress = false;
+        }
+
+        document.addEventListener('touchstart', (e) => {
+            const el = e.target.closest('.project-item, .user-item');
+            if (el) handleTouchStart(e, el);
+        }, { passive: false });
+
+        document.addEventListener('touchend', (e) => {
+            handleTouchEnd(e);
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            handleTouchMove(e);
+        }, { passive: false });
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl border backdrop-blur-xl transition-all duration-300 translate-y-[-20px] opacity-0`;
+            
+            let icon = 'info';
+            let iconColor = 'text-primary';
+            const bgColor = 'bg-white/90 dark:bg-slate-900/90';
+            const borderColor = 'border-slate-200 dark:border-border-dark';
+            const textColor = 'text-slate-900 dark:text-slate-100';
+
+            if (type === 'success') {
+                icon = 'check_circle';
+                iconColor = 'text-green-500';
+            } else if (type === 'error') {
+                icon = 'error';
+                iconColor = 'text-red-500';
+            }
+
+            toast.classList.add(bgColor, borderColor, textColor);
+
+            toast.innerHTML = `
+                <span class="material-symbols-outlined ${iconColor}">${icon}</span>
+                <span class="text-sm font-medium">${message}</span>
+                <button onclick="this.parentElement.remove()" class="ml-auto text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+            `;
+
+            container.appendChild(toast);
+
+            // Trigger animation
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-[-20px]', 'opacity-0');
+            });
+
+            // Auto remove
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('opacity-0', 'translate-y-[-20px]');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 5000);
+        }
+
+        // URL-based Project Highlighting
+        function highlightActiveProject() {
+            const pathParts = window.location.pathname.split('/');
+            let projectName = '';
+            
+            // Check for /projects/{name}/...
+            if (pathParts[1] === 'projects' && pathParts[2]) {
+                projectName = pathParts[2];
+            } else {
+                // Check for ?project={name}
+                const urlParams = new URLSearchParams(window.location.search);
+                projectName = urlParams.get('project');
+            }
+
+            document.querySelectorAll('.project-item').forEach(item => {
+                const btn = item.querySelector('button[data-project-name]');
+                const indicator = item.querySelector('.active-indicator');
+                if (btn && btn.getAttribute('data-project-name') === projectName) {
+                    btn.classList.add('text-primary', 'dark:text-primary-dark', 'bg-primary/10', 'active-project');
+                    if (indicator) {
+                        indicator.classList.remove('opacity-0', 'scale-y-0');
+                        indicator.classList.add('opacity-100', 'scale-y-100');
+                    }
+                } else if (btn) {
+                    btn.classList.remove('text-primary', 'dark:text-primary-dark', 'bg-primary/10', 'active-project');
+                    if (indicator) {
+                        indicator.classList.add('opacity-0', 'scale-y-0');
+                        indicator.classList.remove('opacity-100', 'scale-y-100');
+                    }
+                }
+            });
+        }
+
+        // Run on load and whenever path might change
+        highlightActiveProject();
+        window.addEventListener('popstate', highlightActiveProject);
+        // HTMX specific listener if needed
+        document.addEventListener('htmx:afterOnLoad', highlightActiveProject);
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.project-item') && !e.target.closest('.user-item')) {
+                document.querySelectorAll('.project-item.show-actions, .user-item.show-actions').forEach(node => {
+                    node.classList.remove('show-actions');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

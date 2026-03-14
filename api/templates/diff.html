@@ -1,0 +1,64 @@
+{{define "title"}}Diff - {{.JobID}}{{end}}
+
+{{define "head"}}
+<style>
+    /* ANSI Colors for diffs */
+    .ansi-bold { font-weight: bold; }
+    .ansi-fg-30 { color: #000000; }
+    .ansi-fg-31 { color: #f14c4c; }
+    .ansi-fg-32 { color: #23d18b; }
+    .ansi-fg-33 { color: #e5e510; }
+    .ansi-fg-34 { color: #3b8eea; }
+    .ansi-fg-35 { color: #d670d6; }
+    .ansi-fg-36 { color: #29b8db; }
+    .ansi-fg-37 { color: #e5e5e5; }
+    .ansi-fg-bright-90 { color: #666666; }
+    .ansi-fg-bright-91 { color: #f14c4c; }
+    .ansi-fg-bright-92 { color: #23d18b; }
+    .ansi-fg-bright-93 { color: #f5f543; }
+    .ansi-fg-bright-94 { color: #3b8eea; }
+    .ansi-fg-bright-95 { color: #d670d6; }
+    .ansi-fg-bright-96 { color: #29b8db; }
+    .ansi-fg-bright-97 { color: #e5e5e5; }
+</style>
+{{end}}
+
+{{define "content"}}
+<section class="max-w-6xl mx-auto w-full flex flex-col h-full">
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-4">
+            <button onclick="history.back()" class="text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <h2 class="text-xl font-display font-bold text-slate-900 dark:text-slate-200 flex items-center gap-2">
+                Job Diff <span class="text-xs font-mono font-normal text-slate-500 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded ml-2 uppercase tracking-widest flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px]">commit</span>
+                    {{.Job.ShortCommit}}
+                </span>
+            </h2>
+        </div>
+        <div class="text-xs font-mono text-slate-500">
+            {{.JobID}}
+        </div>
+    </div>
+
+    <div class="flex-1 glass-panel border border-slate-200 dark:border-border-dark rounded-lg overflow-hidden flex flex-col min-h-0 bg-black/90">
+        <div class="flex-1 overflow-y-auto p-6 font-mono text-xs leading-relaxed text-slate-300">
+            {{if .Diff}}
+            <pre class="whitespace-pre-wrap break-words m-0">{{.Diff}}</pre>
+            {{else}}
+            <div class="flex flex-col items-center justify-center h-full text-slate-500">
+                <span class="material-symbols-outlined text-4xl mb-2 opacity-50">difference</span>
+                <p>No diff available for this job.</p>
+            </div>
+            {{end}}
+        </div>
+        <div class="px-4 md:px-6 py-3 border-t border-slate-800 bg-slate-900/50 flex justify-between items-center pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-3">
+            <div class="text-[10px] font-mono text-slate-500 uppercase">Git Diff Output</div>
+            <div class="flex gap-4">
+                <button onclick="window.scrollTo(0, 0)" class="text-[10px] font-mono text-slate-500 hover:text-slate-300 uppercase">Top</button>
+            </div>
+        </div>
+    </div>
+</section>
+{{end}}

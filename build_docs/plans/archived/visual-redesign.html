@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>overdrive AI - Futuristic Developer Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#00FF9D", // Neon Spring Green
+              "background-light": "#F8FAFC",
+              "background-dark": "#0A0A0B",
+              "panel-dark": "#121214",
+              "border-dark": "#27272A",
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+              mono: ["JetBrains Mono", "monospace"],
+            },
+            borderRadius: {
+              DEFAULT: "4px",
+            },
+          },
+        },
+      };
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0A0A0B;
+        }
+        .glass-panel {
+            background: rgba(18, 18, 20, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glow-border:focus-within {
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.15);
+            border-color: #00FF9D;
+        }
+        .status-neon-build { box-shadow: 0 0 8px rgba(96, 165, 250, 0.6); }
+        .status-neon-done { box-shadow: 0 0 8px rgba(251, 146, 60, 0.5); }
+        .status-neon-merged { box-shadow: 0 0 8px rgba(0, 255, 157, 0.5); }
+        .status-neon-crash { box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #27272A; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3F3F46; }
+        .cmd-input:focus ~ .cmd-options {
+            max-height: 400px;
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex overflow-hidden">
+<aside class="w-16 flex flex-col items-center py-6 border-r border-slate-200 dark:border-border-dark bg-white/50 dark:bg-panel-dark/50 backdrop-blur-xl z-20">
+<div class="mb-10">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-black font-bold text-xl">B</div>
+</div>
+<nav class="flex-1 flex flex-col gap-8">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">dashboard</span>
+</button>
+<button class="text-primary transition-colors">
+<span class="material-symbols-outlined">terminal</span>
+</button>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">account_tree</span>
+</button>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">settings_input_component</span>
+</button>
+</nav>
+<div class="mt-auto">
+<button class="text-slate-400 hover:text-slate-100 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</aside>
+<main class="flex-1 flex flex-col relative overflow-hidden">
+<header class="h-16 flex items-center justify-between px-8 border-b border-slate-200 dark:border-border-dark bg-white/30 dark:bg-transparent backdrop-blur-sm">
+<div class="flex items-center gap-4">
+<h1 class="text-sm font-mono tracking-widest text-slate-500 uppercase">System Status: <span class="text-primary">Operational</span></h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 text-xs font-mono text-slate-400">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    ACTIVE AGENTS: 12
+                </div>
+<div class="w-8 h-8 rounded-full bg-slate-800 border border-border-dark overflow-hidden">
+<img alt="User Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVJX6SI3EKah-cme_y7SjAyqgOtRrJYI7SYnU_ixz388nt2RZ_veak8hpxFPQeCVRWT_Q581FJuMQQWwQ5Q-FIyynvLM3T4IbDi7J-GUsTmSyB2fYB8awkLIocaau-WK_mUrvz4mq4BJ5PRKIr61zYcSm_bL40orJJw1f88GRUN5aat3Y-26waHNW1RiAVxyfyw5ihwEdp-zvCHTvMsnQ1m7CnDmo2Wy_fIv2GsziPjBToHh20Nu6hPaLU1UfKCw8FlenaPPToLWM"/>
+</div>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto p-8 space-y-12">
+<section class="max-w-5xl mx-auto w-full">
+<div class="relative group">
+<div class="flex items-center gap-4 p-4 glass-panel rounded-lg border border-slate-200 dark:border-border-dark transition-all duration-300 focus-within:border-primary/50 glow-border">
+<span class="material-symbols-outlined text-slate-500">terminal</span>
+<input class="cmd-input flex-1 bg-transparent border-none focus:ring-0 font-mono text-lg placeholder:text-slate-600 dark:placeholder:text-slate-700" placeholder="Type a prompt to build something new... (e.g., 'Update navigation to vertical sidebar')" type="text"/>
+<kbd class="hidden md:block px-2 py-1 bg-slate-800 text-slate-500 text-[10px] rounded border border-slate-700 font-mono">CMD + K</kbd>
+<button class="bg-primary hover:bg-primary/90 text-black px-6 py-2 rounded font-semibold text-sm transition-all flex items-center gap-2">
+                            SUBMIT <span class="material-symbols-outlined text-sm">north_east</span>
+</button>
+</div>
+<div class="cmd-options mt-2 overflow-hidden max-h-0 opacity-0 transform -translate-y-2 transition-all duration-300">
+<div class="grid grid-cols-3 gap-4 p-4 glass-panel rounded-lg border border-border-dark">
+<div class="space-y-1">
+<label class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">Repository</label>
+<select class="w-full bg-slate-900 border-border-dark rounded text-xs py-1.5 focus:ring-primary/30">
+<option>git@github.com:org/overdrive-ui.git</option>
+<option>git@github.com:org/api-engine.git</option>
+</select>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">Branch</label>
+<input class="w-full bg-slate-900 border-border-dark rounded text-xs py-1.5 focus:ring-primary/30" type="text" value="main"/>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">Mode</label>
+<div class="flex gap-2">
+<button class="flex-1 text-[10px] py-1.5 bg-primary/10 border border-primary/30 text-primary rounded">QUICK CHANGE</button>
+<button class="flex-1 text-[10px] py-1.5 bg-slate-900 border border-border-dark text-slate-400 rounded hover:bg-slate-800">FULL REFACTOR</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="max-w-6xl mx-auto w-full">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-xl font-display font-bold flex items-center gap-2">
+                        Active Jobs <span class="text-xs font-mono font-normal text-slate-500 bg-slate-900 px-2 py-0.5 rounded ml-2">24</span>
+</h2>
+<div class="flex gap-2">
+<button class="p-2 glass-panel hover:bg-slate-800 rounded transition-colors text-slate-400">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+</button>
+<button class="p-2 glass-panel hover:bg-slate-800 rounded transition-colors text-slate-400">
+<span class="material-symbols-outlined text-sm">refresh</span>
+</button>
+</div>
+</div>
+<div class="space-y-3">
+<div class="group relative overflow-hidden flex items-center gap-6 p-4 glass-panel border border-slate-200 dark:border-border-dark rounded hover:border-blue-400/50 transition-all">
+<div class="w-1 h-12 bg-blue-400 absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex-shrink-0 w-24">
+<div class="text-[10px] font-mono text-slate-500 mb-1">ID: 26nJup55</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-blue-400 status-neon-build animate-pulse"></div>
+<span class="text-xs font-bold text-blue-400 uppercase tracking-widest">Build</span>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] font-mono bg-purple-500/10 text-purple-400 px-2 border border-purple-500/20 rounded">PLANNING</span>
+<span class="text-sm font-medium text-slate-200">Refactor global navigation layout...</span>
+</div>
+<div class="text-[11px] font-mono text-slate-500 flex items-center gap-3">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">account_tree</span> main</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">schedule</span> 16:34:14</span>
+</div>
+</div>
+<div class="w-32 flex flex-col items-end">
+<div class="text-[10px] text-slate-500 mb-1">DURATION</div>
+<div class="font-mono text-sm text-slate-300">26s</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-xs font-mono text-primary hover:underline">TAIL LOGS</button>
+</div>
+</div>
+<div class="group relative overflow-hidden flex items-center gap-6 p-4 glass-panel border border-slate-200 dark:border-border-dark rounded hover:border-primary/50 transition-all">
+<div class="flex-shrink-0 w-24">
+<div class="text-[10px] font-mono text-slate-500 mb-1">ID: 26nJr2dd</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary status-neon-merged"></div>
+<span class="text-xs font-bold text-primary uppercase tracking-widest">Merged</span>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] font-mono bg-primary/10 text-primary px-2 border border-primary/20 rounded">QUICK CHANGE</span>
+<span class="text-sm font-medium text-slate-200">Remove 'New' label from the page header entirely...</span>
+</div>
+<div class="text-[11px] font-mono text-slate-500 flex items-center gap-3">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">account_tree</span> main</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">schedule</span> 16:30:39</span>
+</div>
+</div>
+<div class="w-32 flex flex-col items-end">
+<div class="text-[10px] text-slate-500 mb-1">DURATION</div>
+<div class="font-mono text-sm text-slate-300">2m 45s</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-xs font-mono text-slate-400 hover:text-white transition-colors">VIEW PR</button>
+</div>
+</div>
+<div class="group relative overflow-hidden flex items-center gap-6 p-4 glass-panel border border-slate-200 dark:border-border-dark rounded hover:border-red-500/50 transition-all bg-red-500/[0.02]">
+<div class="flex-shrink-0 w-24">
+<div class="text-[10px] font-mono text-slate-500 mb-1">ID: 26nJnS5S</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-red-500 status-neon-crash"></div>
+<span class="text-xs font-bold text-red-500 uppercase tracking-widest">Crash</span>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] font-mono bg-red-500/10 text-red-400 px-2 border border-red-500/20 rounded">FEATURE</span>
+<span class="text-sm font-medium text-slate-200">Implement mobile responsive navigation drawer...</span>
+</div>
+<div class="text-[11px] font-mono text-slate-500 flex items-center gap-3">
+<span class="flex items-center gap-1 font-bold text-red-400/80">ERROR: Build script failed at line 42</span>
+</div>
+</div>
+<div class="w-32 flex flex-col items-end">
+<div class="text-[10px] text-slate-500 mb-1">DURATION</div>
+<div class="font-mono text-sm text-slate-300">4s</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-1 rounded text-xs font-mono border border-red-500/30 transition-colors">DEBUG</button>
+</div>
+</div>
+<div class="group flex items-center gap-6 p-4 glass-panel border border-slate-200 dark:border-border-dark rounded opacity-60 hover:opacity-100 transition-all">
+<div class="flex-shrink-0 w-24">
+<div class="text-[10px] font-mono text-slate-500 mb-1">ID: 26nJjG57</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-slate-500"></div>
+<span class="text-xs font-bold text-slate-500 uppercase tracking-widest">No-Op</span>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] font-mono bg-slate-800 text-slate-400 px-2 border border-slate-700 rounded">DOCS</span>
+<span class="text-sm font-medium text-slate-400">Update README with new contribution guidelines...</span>
+</div>
+<div class="text-[11px] font-mono text-slate-500">Already up to date.</div>
+</div>
+<div class="w-32 flex flex-col items-end">
+<div class="text-[10px] text-slate-500 mb-1">DURATION</div>
+<div class="font-mono text-sm text-slate-500">1m 6s</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-xs font-mono text-slate-500 hover:text-white transition-colors">DISMISS</button>
+</div>
+</div>
+</div>
+<div class="mt-8 flex items-center justify-between text-[10px] font-mono text-slate-600 uppercase tracking-widest">
+<div class="flex items-center gap-4">
+<span>API LANTENCY: 24ms</span>
+<span>|</span>
+<span>GPU CLUSTER: ALPHA-9</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-primary">BUILDER_V2.0.4-STABLE</span>
+</div>
+</div>
+</section>
+</div>
+<div class="absolute right-8 top-24 w-64 space-y-4 pointer-events-none">
+<div class="glass-panel p-4 rounded-lg border border-border-dark pointer-events-auto">
+<h3 class="text-[10px] font-mono text-slate-500 uppercase mb-3">Active Workflow</h3>
+<div class="space-y-3">
+<div class="flex items-center gap-3">
+<div class="w-1 h-8 bg-primary"></div>
+<div>
+<div class="text-xs font-bold">default.yml</div>
+<div class="text-[10px] text-slate-500">Standard PR Agent</div>
+</div>
+</div>
+<div class="flex items-center gap-3 opacity-40">
+<div class="w-1 h-8 bg-slate-600"></div>
+<div>
+<div class="text-xs font-bold">merge.yml</div>
+<div class="text-[10px] text-slate-500">Auto-merger</div>
+</div>
+</div>
+</div>
+</div>
+<div class="glass-panel p-4 rounded-lg border border-border-dark pointer-events-auto">
+<h3 class="text-[10px] font-mono text-slate-500 uppercase mb-3">Performance</h3>
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] font-mono">
+<span class="text-slate-400">SUCCESS RATE</span>
+<span class="text-primary">94.2%</span>
+</div>
+<div class="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 94%"></div>
+</div>
+<div class="flex justify-between text-[10px] font-mono pt-2">
+<span class="text-slate-400">CREDITS REMAINING</span>
+<span class="text-slate-200">12,402</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed inset-0 pointer-events-none z-0">
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-background-dark/20 to-background-dark"></div>
+</div>
+
+</body></html>
