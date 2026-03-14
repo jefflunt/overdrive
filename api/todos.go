@@ -198,6 +198,11 @@ func UpdateTodoStatusFromJob(projectName string, job *Job) error {
 		if err != nil {
 			return err
 		}
+	} else if project.TodoProvider == "github" {
+		todos, err = FetchGitHubIssues(project.GitHub)
+		if err != nil {
+			return err
+		}
 	} else {
 		todos, err = LoadTodos(projectName)
 		if err != nil {
@@ -207,12 +212,17 @@ func UpdateTodoStatusFromJob(projectName string, job *Job) error {
 
 	todoStatus := ""
 	jiraStatus := ""
+	githubStatus := ""
 	switch job.Status {
 	case "done":
 		todoStatus = "completed"
 		jiraStatus = project.Jira.StatusDone
 		if jiraStatus == "" {
 			jiraStatus = "Done"
+		}
+		githubStatus = project.GitHub.StatusDone
+		if githubStatus == "" {
+			githubStatus = "closed"
 		}
 	case "crash", "timeout", "stopped", "undone", "cancelled":
 		todoStatus = "crashed"
@@ -222,7 +232,7 @@ func UpdateTodoStatusFromJob(projectName string, job *Job) error {
 
 	// Find the todo
 	var target *Todo
-	if project.TodoProvider == "jira" && job.ReferenceID != "" {
+	if (project.TodoProvider == "jira" || project.TodoProvider == "github") && job.ReferenceID != "" {
 		target = FindTodo(todos, job.ReferenceID)
 	} else {
 		target = FindTodoByJobID(todos, job.ID)
@@ -239,7 +249,14 @@ func UpdateTodoStatusFromJob(projectName string, job *Job) error {
 		}
 	}
 
-	if project.TodoProvider != "jira" {
+	if project.TodoProvider == "github" && githubStatus != "" {
+		err := UpdateGitHubIssueStatus(project.GitHub, target.ID, githubStatus)
+		if err != nil {
+			return err
+		}
+	}
+
+	if project.TodoProvider != "jira" && project.TodoProvider != "github" {
 		// Update status locally
 		todos, _ = UpdateTodoStatus(todos, target.ID, todoStatus, "")
 		return SaveTodos(projectName, todos)

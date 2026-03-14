@@ -67,6 +67,11 @@ func HandleGetDashboardTodos(w http.ResponseWriter, r *http.Request) {
 			if err == nil {
 				dashboardData.Projects[p.Name] = todos
 			}
+		} else if p.TodoProvider == "github" {
+			todos, err := FetchGitHubIssues(p.GitHub)
+			if err == nil {
+				dashboardData.Projects[p.Name] = todos
+			}
 		} else {
 			todos, err := LoadTodos(p.Name)
 			if err == nil {

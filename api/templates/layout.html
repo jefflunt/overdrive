@@ -613,7 +613,7 @@
                 <div id="project-tab-content-feat" class="space-y-4 hidden">
                     <div class="space-y-4">
                         <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Todo Experience</label>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <label class="relative flex items-center p-4 border rounded-lg cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 border-primary bg-primary/5" id="p-provider-label-native">
                                 <input type="radio" name="p_todo_provider" value="native" checked class="sr-only" onchange="updateProjectProviderStyles()">
                                 <div class="flex items-center gap-3">
@@ -629,8 +629,18 @@
                                 <div class="flex items-center gap-3">
                                     <span class="material-symbols-outlined text-blue-500">jira</span>
                                     <div>
-                                        <div class="font-bold text-slate-900 dark:text-slate-200 text-sm">Jira Integration</div>
+                                        <div class="font-bold text-slate-900 dark:text-slate-200 text-sm">Jira</div>
                                         <div class="text-[10px] text-slate-500">Sync with Jira project issues</div>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="relative flex items-center p-4 border rounded-lg cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 border-slate-200 dark:border-slate-700" id="p-provider-label-github">
+                                <input type="radio" name="p_todo_provider" value="github" class="sr-only" onchange="updateProjectProviderStyles()">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-slate-900 dark:text-slate-100">github</span>
+                                    <div>
+                                        <div class="font-bold text-slate-900 dark:text-slate-200 text-sm">GitHub</div>
+                                        <div class="text-[10px] text-slate-500">Sync with GitHub repository issues</div>
                                     </div>
                                 </div>
                             </label>
@@ -667,6 +677,32 @@
                             <div class="space-y-1">
                                 <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Status: Done</label>
                                 <input type="text" id="p_jira_status_done" placeholder="Done" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="p-github-settings-container" class="hidden pt-4 border-t border-slate-200 dark:border-border-dark space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Repository (owner/repo)</label>
+                                <input type="text" id="p_github_repo" placeholder="google/go-github" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Personal Access Token (or $ENV_VAR)</label>
+                                <div class="relative group">
+                                    <input type="password" id="p_github_token" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 pr-8 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                                    <button type="button" onclick="togglePassword('p_github_token', 'p_github_token_icon')" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center transition-colors">
+                                        <span id="p_github_token_icon" class="material-symbols-outlined text-[18px]">visibility</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Status: Pick up (Label)</label>
+                                <input type="text" id="p_github_status_pickup" placeholder="in-progress" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Status: Done (Label or 'closed')</label>
+                                <input type="text" id="p_github_status_done" placeholder="closed" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border-slate-200 dark:border-border-dark rounded text-sm py-2 px-3 text-slate-900 dark:text-slate-200 focus:ring-primary/30">
                             </div>
                         </div>
                     </div>
@@ -903,21 +939,24 @@
         }
 
         function updateProjectProviderStyles() {
-            const providers = ['native', 'jira'];
+            const providers = ['native', 'jira', 'github'];
             const selected = document.querySelector('input[name="p_todo_provider"]:checked').value;
             
             providers.forEach(p => {
                 const label = document.getElementById(`p-provider-label-${p}`);
-                if (p === selected) {
-                    label.classList.add('border-primary', 'bg-primary/5');
-                    label.classList.remove('border-slate-200', 'dark:border-slate-700');
-                } else {
-                    label.classList.remove('border-primary', 'bg-primary/5');
-                    label.classList.add('border-slate-200', 'dark:border-slate-700');
+                if (label) {
+                    if (p === selected) {
+                        label.classList.add('border-primary', 'bg-primary/5');
+                        label.classList.remove('border-slate-200', 'dark:border-slate-700');
+                    } else {
+                        label.classList.remove('border-primary', 'bg-primary/5');
+                        label.classList.add('border-slate-200', 'dark:border-slate-700');
+                    }
                 }
             });
 
             document.getElementById('p-jira-settings-container').classList.toggle('hidden', selected !== 'jira');
+            document.getElementById('p-github-settings-container').classList.toggle('hidden', selected !== 'github');
         }
 
         let autoSaveTimeout;
@@ -1035,6 +1074,13 @@
             document.getElementById('p_jira_api_token_icon').innerText = 'visibility';
             document.getElementById('p_jira_status_pickup').value = 'In Progress';
             document.getElementById('p_jira_status_done').value = 'Done';
+            
+            document.getElementById('p_github_repo').value = '';
+            document.getElementById('p_github_token').value = '';
+            document.getElementById('p_github_token').type = 'password';
+            document.getElementById('p_github_token_icon').innerText = 'visibility';
+            document.getElementById('p_github_status_pickup').value = 'in-progress';
+            document.getElementById('p_github_status_done').value = 'closed';
 
             showProjectTab('code');
             document.getElementById('createProjectModal').style.display = 'flex';
@@ -1114,6 +1160,12 @@
                         document.getElementById('p_jira_status_pickup').value = project.jira.status_pickup || 'In Progress';
                         document.getElementById('p_jira_status_done').value = project.jira.status_done || 'Done';
                     }
+                    if (project.github) {
+                        document.getElementById('p_github_repo').value = project.github.repo || '';
+                        document.getElementById('p_github_token').value = project.github.token || '';
+                        document.getElementById('p_github_status_pickup').value = project.github.status_pickup || 'in-progress';
+                        document.getElementById('p_github_status_done').value = project.github.status_done || 'closed';
+                    }
 
                     showProjectTab('code');
                     document.getElementById('createProjectModal').style.display = 'flex';
@@ -1186,6 +1238,12 @@
                     api_token: document.getElementById('p_jira_api_token').value,
                     status_pickup: document.getElementById('p_jira_status_pickup').value,
                     status_done: document.getElementById('p_jira_status_done').value
+                },
+                github: {
+                    repo: document.getElementById('p_github_repo').value,
+                    token: document.getElementById('p_github_token').value,
+                    status_pickup: document.getElementById('p_github_status_pickup').value,
+                    status_done: document.getElementById('p_github_status_done').value
                 }
             };
             fetch('/projects', {

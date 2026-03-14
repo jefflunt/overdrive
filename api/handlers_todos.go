@@ -43,6 +43,8 @@ func HandleListTodos(w http.ResponseWriter, r *http.Request) {
 	var todos []Todo
 	if project.TodoProvider == "jira" {
 		todos, err = FetchJiraIssues(project.Jira)
+	} else if project.TodoProvider == "github" {
+		todos, err = FetchGitHubIssues(project.GitHub)
 	} else {
 		todos, err = LoadTodos(projectName)
 	}
@@ -74,8 +76,8 @@ func HandleCreateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if project.TodoProvider == "jira" {
-		http.Error(w, "Creation is disabled in Jira mode", http.StatusForbidden)
+	if project.TodoProvider != "native" {
+		http.Error(w, "Creation is disabled in "+project.TodoProvider+" mode", http.StatusForbidden)
 		return
 	}
 
@@ -129,8 +131,8 @@ func HandleUpdateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if project.TodoProvider == "jira" {
-		http.Error(w, "Update is disabled in Jira mode", http.StatusForbidden)
+	if project.TodoProvider != "native" {
+		http.Error(w, "Update is disabled in "+project.TodoProvider+" mode", http.StatusForbidden)
 		return
 	}
 
@@ -198,8 +200,8 @@ func HandleDeleteTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if project.TodoProvider == "jira" {
-		http.Error(w, "Deletion is disabled in Jira mode", http.StatusForbidden)
+	if project.TodoProvider != "native" {
+		http.Error(w, "Deletion is disabled in "+project.TodoProvider+" mode", http.StatusForbidden)
 		return
 	}
 
@@ -244,8 +246,8 @@ func HandleStarTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if project.TodoProvider == "jira" {
-		http.Error(w, "Starring is disabled in Jira mode", http.StatusForbidden)
+	if project.TodoProvider != "native" {
+		http.Error(w, "Starring is disabled in "+project.TodoProvider+" mode", http.StatusForbidden)
 		return
 	}
 
@@ -320,6 +322,8 @@ func HandleSubmitTodo(w http.ResponseWriter, r *http.Request) {
 	var todos []Todo
 	if project.TodoProvider == "jira" {
 		todos, err = FetchJiraIssues(project.Jira)
+	} else if project.TodoProvider == "github" {
+		todos, err = FetchGitHubIssues(project.GitHub)
 	} else {
 		todos, err = LoadTodos(projectName)
 	}
@@ -341,7 +345,7 @@ func HandleSubmitTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update Jira status to "In Progress" if enabled
+	// Update status to "In Progress" if enabled
 	if project.TodoProvider == "jira" {
 		statusPickup := project.Jira.StatusPickup
 		if statusPickup == "" {
@@ -351,6 +355,15 @@ func HandleSubmitTodo(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, "Failed to update Jira status: "+err.Error(), http.StatusInternalServerError)
 			return
+		}
+	} else if project.TodoProvider == "github" {
+		statusPickup := project.GitHub.StatusPickup
+		if statusPickup != "" {
+			err := UpdateGitHubIssueStatus(project.GitHub, todo.ID, statusPickup)
+			if err != nil {
+				http.Error(w, "Failed to update GitHub status: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
 		}
 	} else {
 		// Validate: status == draft

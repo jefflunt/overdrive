@@ -133,6 +133,8 @@ class TodoTree {
         rootList.className = 'todo-tree';
         
         const isJira = this.project && this.project.todo_provider === 'jira';
+        const isGitHub = this.project && this.project.todo_provider === 'github';
+        const isRemote = isJira || isGitHub;
 
         // Add Header
         const header = document.createElement('div');
@@ -140,11 +142,12 @@ class TodoTree {
         header.innerHTML = `
             <div class="flex flex-col">
                 <h2 class="text-2xl font-bold font-display text-slate-900 dark:text-slate-100">
-                    ${isJira ? 'Jira Issues' : 'Project Todos'}
+                    ${isJira ? 'Jira Issues' : (isGitHub ? 'GitHub Issues' : 'Project Todos')}
                 </h2>
                 ${isJira ? `<p class="text-xs text-slate-500 mt-1">Jira Project: <span class="font-mono font-bold">${this.project.jira.project_key}</span></p>` : ''}
+                ${isGitHub ? `<p class="text-xs text-slate-500 mt-1">GitHub Repo: <span class="font-mono font-bold">${this.project.github.repo}</span></p>` : ''}
             </div>
-            ${!isJira ? `
+            ${!isRemote ? `
             <button class="bg-primary dark:bg-primary-dark hover:bg-primary/90 text-black px-4 py-2 rounded text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2" data-action="add-root">
                 <span class="material-symbols-outlined text-lg">add</span> New Feature
             </button>
@@ -156,10 +159,10 @@ class TodoTree {
             const empty = document.createElement('div');
             empty.className = 'text-center p-6 md:p-12 border-2 border-dashed border-slate-200 dark:border-border-dark rounded-lg';
             empty.innerHTML = `
-                <div class="text-slate-400 mb-4 text-4xl">${isJira ? '🔍' : '📝'}</div>
-                <h3 class="text-lg font-medium text-slate-900 dark:text-slate-200 mb-2">No ${isJira ? 'issues' : 'todos'} found</h3>
-                <p class="text-slate-500 mb-6">${isJira ? 'Check your Jira project and configuration.' : 'Create a hierarchical chat for your project.'}</p>
-                ${!isJira ? '<button class="text-primary hover:underline font-medium" data-action="add-root">Create first item</button>' : ''}
+                <div class="text-slate-400 mb-4 text-4xl">${isRemote ? '🔍' : '📝'}</div>
+                <h3 class="text-lg font-medium text-slate-900 dark:text-slate-200 mb-2">No ${isRemote ? 'issues' : 'todos'} found</h3>
+                <p class="text-slate-500 mb-6">${isJira ? 'Check your Jira project and configuration.' : (isGitHub ? 'Check your GitHub repository and configuration.' : 'Create a hierarchical chat for your project.')}</p>
+                ${!isRemote ? '<button class="text-primary hover:underline font-medium" data-action="add-root">Create first item</button>' : ''}
             `;
             this.container.appendChild(empty);
             return;
@@ -178,6 +181,8 @@ class TodoTree {
         node.id = `todo-${todo.id}`;
 
         const isJira = this.project && this.project.todo_provider === 'jira';
+        const isGitHub = this.project && this.project.todo_provider === 'github';
+        const isRemote = isJira || isGitHub;
         const isLeaf = !todo.children || todo.children.length === 0;
         const hasChildren = todo.children && todo.children.length > 0;
         const isExpanded = !this.collapsed.has(todo.id);
@@ -188,14 +193,14 @@ class TodoTree {
         let statusBadge = '';
         let statusClass = '';
         
-        if (isJira) {
-            statusBadge = `JIRA: ${todo.status.toUpperCase()}`;
+        if (isRemote) {
+            statusBadge = `${isJira ? 'JIRA' : 'GH'}: ${todo.status.toUpperCase()}`;
             statusClass = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
             
             const lowerStatus = todo.status.toLowerCase();
-            if (lowerStatus.includes('progress') || lowerStatus.includes('doing')) {
+            if (lowerStatus.includes('progress') || lowerStatus.includes('doing') || lowerStatus.includes('open')) {
                 statusClass = 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400';
-            } else if (lowerStatus.includes('done') || lowerStatus.includes('complete') || lowerStatus.includes('resolved')) {
+            } else if (lowerStatus.includes('done') || lowerStatus.includes('complete') || lowerStatus.includes('resolved') || lowerStatus.includes('closed')) {
                 statusClass = 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400';
             } else if (lowerStatus.includes('fail') || lowerStatus.includes('error')) {
                 statusClass = 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400';
@@ -224,7 +229,7 @@ class TodoTree {
         // Actions
         let actions = '';
 
-        if (!isJira) {
+        if (!isRemote) {
             // Always include delete icon for local todos
             actions += `
                 <button class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-red-500 transition-colors" data-action="delete" data-id="${todo.id}" title="Delete/Discard">
@@ -258,10 +263,10 @@ class TodoTree {
                 `;
             }
         } else {
-            // Jira Actions
+            // Remote Actions
             if (isLeaf) {
                 const lowerStatus = todo.status.toLowerCase();
-                const canPickup = !lowerStatus.includes('done') && !lowerStatus.includes('complete') && !lowerStatus.includes('resolved') && !lowerStatus.includes('progress');
+                const canPickup = !lowerStatus.includes('done') && !lowerStatus.includes('complete') && !lowerStatus.includes('resolved') && !lowerStatus.includes('progress') && !lowerStatus.includes('closed');
                 
                 if (canPickup) {
                     actions += `
@@ -272,15 +277,16 @@ class TodoTree {
                 }
             }
             
-            // Link to Jira
+            // Link to Remote
+            const remoteUrl = isJira ? `${this.project.jira.instance}/browse/${todo.id}` : `https://github.com/${this.project.github.repo}/issues/${todo.id}`;
             actions += `
-                <a href="${this.project.jira.instance}/browse/${todo.id}" target="_blank" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-blue-500 transition-colors" title="View in Jira">
+                <a href="${remoteUrl}" target="_blank" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-blue-500 transition-colors" title="View in ${isJira ? 'Jira' : 'GitHub'}">
                     <span class="material-symbols-outlined text-lg">open_in_new</span>
                 </a>
             `;
         }
 
-        const isEditable = !isJira && (todo.status === 'draft' || todo.status === 'crashed');
+        const isEditable = !isRemote && (todo.status === 'draft' || todo.status === 'crashed');
         const placeholder = isRoot ? 'New Feature' : 'New Subtask';
 
         content.innerHTML = `
@@ -289,7 +295,7 @@ class TodoTree {
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
                         ${statusBadge ? `<span class="whitespace-nowrap text-[10px] font-bold px-2 py-0.5 rounded ${statusClass} tracking-wider">${statusBadge}</span>` : ''}
-                        ${isJira ? `<span class="whitespace-nowrap text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1 rounded">${todo.id}</span>` : ''}
+                        ${isRemote ? `<span class="whitespace-nowrap text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1 rounded">${todo.id}</span>` : ''}
                         <div class="todo-title flex-1 text-sm font-semibold text-slate-900 dark:text-slate-100 p-1 rounded ${isEditable ? 'hover:bg-slate-100 dark:hover:bg-slate-900 cursor-text' : ''} transition-colors" 
                             contenteditable="${isEditable}" data-placeholder="${placeholder}">
                             ${todo.title || ''}
@@ -426,7 +432,9 @@ class TodoTree {
 
     async submitTodo(id) {
          const isJira = this.project && this.project.todo_provider === 'jira';
-         const msg = isJira ? `Pick up Jira issue ${id}?` : 'Submit this task to the job queue?';
+         const isGitHub = this.project && this.project.todo_provider === 'github';
+         const isRemote = isJira || isGitHub;
+         const msg = isRemote ? `Pick up issue ${id}?` : 'Submit this task to the job queue?';
          if (!confirm(msg)) return;
          try {
             const res = await fetch(`/projects/${this.projectId}/todos/${id}/submit`, {

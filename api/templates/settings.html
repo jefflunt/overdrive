@@ -246,7 +246,7 @@
                             Todo Experience
                         </h3>
                         <p class="text-sm text-slate-500">Configure how tasks and todos are managed for this project.</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <label class="relative flex items-center p-4 border rounded-lg cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 {{if eq .Project.TodoProvider "native"}}border-primary bg-primary/5{{else}}border-slate-200 dark:border-slate-700{{end}}" id="provider-label-native">
                                 <input type="radio" name="todo_provider" value="native" {{if eq .Project.TodoProvider "native"}}checked{{end}} class="sr-only" onchange="updateProviderStyles(); triggerAutoSave()">
                                 <div class="flex items-center gap-3">
@@ -262,8 +262,18 @@
                                 <div class="flex items-center gap-3">
                                     <span class="material-symbols-outlined text-blue-500">jira</span>
                                     <div>
-                                        <div class="font-bold text-slate-900 dark:text-slate-200">Jira Integration</div>
+                                        <div class="font-bold text-slate-900 dark:text-slate-200">Jira</div>
                                         <div class="text-xs text-slate-500">Sync with your Jira project issues</div>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="relative flex items-center p-4 border rounded-lg cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 {{if eq .Project.TodoProvider "github"}}border-primary bg-primary/5{{else}}border-slate-200 dark:border-slate-700{{end}}" id="provider-label-github">
+                                <input type="radio" name="todo_provider" value="github" {{if eq .Project.TodoProvider "github"}}checked{{end}} class="sr-only" onchange="updateProviderStyles(); triggerAutoSave()">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-slate-900 dark:text-slate-100">github</span>
+                                    <div>
+                                        <div class="font-bold text-slate-900 dark:text-slate-200">GitHub</div>
+                                        <div class="text-xs text-slate-500">Sync with GitHub repository issues</div>
                                     </div>
                                 </div>
                             </label>
@@ -299,6 +309,31 @@
                             <div class="space-y-2">
                                 <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Status: Done</label>
                                 <input type="text" name="jira_status_done" value="{{if .Project.Jira.StatusDone}}{{.Project.Jira.StatusDone}}{{else}}Done{{end}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="github-settings-container" class="{{if ne .Project.TodoProvider "github"}}hidden{{end}} pt-6 border-t border-slate-200 dark:border-border-dark space-y-4">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-200 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-slate-900 dark:text-slate-100">settings</span>
+                            GitHub Configuration
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Repository (owner/repo)</label>
+                                <input type="text" name="github_repo" value="{{.Project.GitHub.Repo}}" placeholder="google/go-github" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Personal Access Token (or $ENV_VAR)</label>
+                                <input type="password" name="github_token" value="{{.Project.GitHub.Token}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Status: Pick up (Label)</label>
+                                <input type="text" name="github_status_pickup" value="{{if .Project.GitHub.StatusPickup}}{{.Project.GitHub.StatusPickup}}{{else}}in-progress{{end}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Status: Done (Label or 'closed')</label>
+                                <input type="text" name="github_status_done" value="{{if .Project.GitHub.StatusDone}}{{.Project.GitHub.StatusDone}}{{else}}closed{{end}}" oninput="triggerAutoSave()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-2 text-sm">
                             </div>
                         </div>
                     </div>
@@ -425,7 +460,7 @@
                 }
 
                 function updateProviderStyles() {
-                    const providers = ['native', 'jira'];
+                    const providers = ['native', 'jira', 'github'];
                     const radio = document.querySelector('input[name="todo_provider"]:checked');
                     if (!radio) return;
                     const selected = radio.value;
@@ -445,6 +480,9 @@
 
                     const jiraContainer = document.getElementById('jira-settings-container');
                     if (jiraContainer) jiraContainer.classList.toggle('hidden', selected !== 'jira');
+
+                    const githubContainer = document.getElementById('github-settings-container');
+                    if (githubContainer) githubContainer.classList.toggle('hidden', selected !== 'github');
                 }
 
                 const settingsForm = document.getElementById('project-settings-form');
@@ -518,6 +556,12 @@
                                 api_token: formData.get('jira_api_token'),
                                 status_pickup: formData.get('jira_status_pickup'),
                                 status_done: formData.get('jira_status_done')
+                            },
+                            github: {
+                                repo: formData.get('github_repo'),
+                                token: formData.get('github_token'),
+                                status_pickup: formData.get('github_status_pickup'),
+                                status_done: formData.get('github_status_done')
                             }
                         };
 

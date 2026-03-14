@@ -19,6 +19,13 @@ type JiraConfig struct {
 	StatusDone   string `json:"status_done" yaml:"status_done"`
 }
 
+type GitHubConfig struct {
+	Repo         string `json:"repo" yaml:"repo"` // e.g. "owner/repo"
+	Token        string `json:"token" yaml:"token"`
+	StatusPickup string `json:"status_pickup" yaml:"status_pickup"`
+	StatusDone   string `json:"status_done" yaml:"status_done"`
+}
+
 type ProjectCmd struct {
 	Label string `json:"label" yaml:"label"`
 	Cmd   string `json:"cmd" yaml:"cmd"`
@@ -62,6 +69,7 @@ type Project struct {
 	TodoProvider  string            `json:"todo_provider" yaml:"todo_provider"`
 	Paused        bool              `json:"paused" yaml:"paused"`
 	Jira          JiraConfig        `json:"jira" yaml:"jira"`
+	GitHub        GitHubConfig      `json:"github" yaml:"github"`
 	Concurrency   ConcurrencyConfig `json:"concurrency" yaml:"concurrency"`
 	LegacyModel   string            `json:"-" yaml:"model,omitempty"`
 }
