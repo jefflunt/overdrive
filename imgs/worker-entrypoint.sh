@@ -120,12 +120,18 @@ echo "Prepping $REPO_URL ..."
 echo "  Cloning $REPO_URL into target..."
 
 set_sub_status "getting latest code"
-git clone -o StrictHostKeyChecking=no --depth 1 --branch "$WORKER_BRANCH" "$REPO_URL" target
-
-# Switch to the target folder and then switch to the git branch WORKER_BRANCH
+git clone -o StrictHostKeyChecking=no --depth 1 "$REPO_URL" target
 cd target
-echo "  Checking out $WORKER_BRANCH..."
-git checkout "$WORKER_BRANCH"
+git fetch --all
+
+# Switch to or create the WORKER_BRANCH
+if git rev-parse --quiet --verify refs/heads/"$WORKER_BRANCH" >/dev/null; then
+  echo "  Switching to branch $WORKER_BRANCH..."
+  git switch $WORKER_BRANCH
+else
+  echo "  Creating branch $WORKER_BRANCH..."
+  git checkout -b $WORKER_BRANCH
+fi
 
 # git pull on the WORKER_BRANCH
 echo "  Pulling latest changes..."
