@@ -127,8 +127,15 @@ git clone --depth 1 "$REPO_URL" target
 cd target
 
 # Switch to or create the WORKER_BRANCH
-git checkout "$WORKER_BRANCH" || git checkout -b "$WORKER_BRANCH"
-git pull origin "$WORKER_BRANCH"
+if git ls-remote --exit-code --heads origin "$WORKER_BRANCH" >/dev/null 2>&1; then
+    echo "  Branch $WORKER_BRANCH exists on remote. Fetching..."
+    git fetch --depth 1 origin "$WORKER_BRANCH"
+    git checkout "$WORKER_BRANCH" 2>/dev/null || git checkout -b "$WORKER_BRANCH" FETCH_HEAD
+    git pull origin "$WORKER_BRANCH"
+else
+    echo "  Branch $WORKER_BRANCH does not exist on remote. Creating locally..."
+    git checkout "$WORKER_BRANCH" 2>/dev/null || git checkout -b "$WORKER_BRANCH"
+fi
 
 INITIAL_SHA=$(git rev-parse HEAD)
 

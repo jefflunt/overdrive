@@ -30,7 +30,7 @@ Each job entry provides detailed insights and actions:
 
 ### Operations
 
-*   **Merge**: Use the **Merge** button next to a completed job to quickly initiate a merge of that job's branch into the primary branch.
+*   **Merge**: Use the **Merge** button next to a completed job to quickly initiate a merge of that job's branch into the working branch.
 *   **Duplicate**: Quickly create a new job pre-filled with the same prompt as a previous job.
 *   **Revert**: Create a new job to undo the changes introduced by a specific completed job.
 
