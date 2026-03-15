@@ -28,14 +28,8 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// PWA routes
+	// Static routes
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	mux.HandleFunc("/manifest.json", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "static/manifest.json")
-	})
-	mux.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "static/sw.js")
-	})
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "static/icons/icon-192.png")
 	})
