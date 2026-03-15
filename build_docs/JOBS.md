@@ -22,7 +22,7 @@ Think of a Job as a specific assignment for the AI worker. It contains all the i
 
 *   **Commits & Diffs**: For completed engineering jobs, you'll see a clickable short commit hash. Clicking this will show you the exact code changes (the "diff") introduced by that job.
 
-*   **Merge Button**: Once a job is successfully completed on its own branch, you can use the **Merge** button to quickly initiate a merge into your primary branch.
+*   **Merge Button**: Once a job is successfully completed on its own branch, you can use the **Merge** button to quickly initiate a merge into your working branch.
 
 ### How to Use Jobs
 Most of the time, jobs run automatically. However, you can:

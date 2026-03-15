@@ -59,7 +59,7 @@ func HandleSaveProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if project.PrimaryBranch == "" {
-		http.Error(w, "Primary Branch is required", http.StatusBadRequest)
+		http.Error(w, "Working Branch is required", http.StatusBadRequest)
 		return
 	}
 

@@ -12,7 +12,7 @@ Configuring a project involves several key areas:
 
 *   **Repo URL**: The Git SSH URL for your project repository.
 *   **Project Name**: An optional name for your project; if empty, it's derived from the Repo URL.
-*   **Primary Branch**: The branch where the AI pushes its changes (e.g., `main` or `master`).
+*   **Working Branch**: The branch where the AI pushes its changes (e.g., `main` or `master`).
 *   **SSH Key**: The private SSH key authorized for repository access.
 
 ### AI Configuration (AI)
