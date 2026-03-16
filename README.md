@@ -6,8 +6,8 @@
 
 ### Prerequisites
 
-- **Go**: Required to build the API server and scheduler binaries.
-- **[Podman](https://podman-desktop.io/)**: Required to execute AI worker tasks and chat sessions in isolated containers.
+- **go**: Required to build the API server and scheduler binaries.
+- **[podman](https://podman.io/docs/installation)**: Required to execute AI worker tasks and chat sessions in isolated containers.
 - **`auth.json`**: An authentication file for the OpenCode service, located in the project root.
 
 ### Getting Started
