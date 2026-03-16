@@ -4,15 +4,25 @@
 
 ## 1. Installation
 
-### Prerequisites
+### Quick Start (macOS Apple Silicon)
 
-- **go**: Required to build the API server and scheduler binaries.
+If you are on macOS with Apple Silicon, you can use the automated setup script:
+
+```bash
+./scripts/setup-macos.sh
+```
+
+This script will check for and install all prerequisites (Homebrew, Go, Podman, Git) and prepare your environment.
+
+### Prerequisites (Manual Setup)
+
+- **go**: Required to build the API server and scheduler binaries (v1.24.5+).
 - **[podman](https://podman.io/docs/installation)**: Required to execute AI worker tasks and chat sessions in isolated containers.
 - **`auth.json`**: An authentication file for the OpenCode service, located in the project root.
 
 ### Getting Started
 
-To build and start the full system, simply run:
+To build and start the full system, run:
 
 ```bash
 ./scripts/rebuild-restart-all
